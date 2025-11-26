@@ -1695,6 +1695,7 @@ var animationFrameStartIndex = 0;
 function getAnimationFrameUiElements() {
         var framesContainer = document.getElementById("animationFrames");
         var frameList = document.getElementById("animationFrameList");
+        var frameStrip = document.getElementById("animationFrameStrip");
         var slider = document.getElementById("animationFrameSlider");
 
         if (!framesContainer || !frameList) {
@@ -1704,6 +1705,7 @@ function getAnimationFrameUiElements() {
         return {
                 framesContainer: framesContainer,
                 frameList: frameList,
+                frameStrip: frameStrip,
                 slider: slider,
         };
 }
@@ -1799,25 +1801,32 @@ function ensureAnimationFrameListHasWidth(onReady) {
 }
 
 function calculateAnimationFrameWindowSize(ui, frameCount) {
-	if (frameCount === 0) {
-	return 0;
-	}
+        if (frameCount === 0) {
+        return 0;
+        }
 
-	var frameListStyle = getComputedStyle(ui.frameList);
-	var paddingLeft = parseFloat(frameListStyle.paddingLeft || "0");
-	var paddingRight = parseFloat(frameListStyle.paddingRight || "0");
-	var frameListWidth = Math.max(0, ui.frameList.getBoundingClientRect().width - paddingLeft - paddingRight);
-	var thumbnailWidth = getAnimationFrameThumbnailWidth(ui);
-	var gap = getAnimationFrameGap(ui);
-	var effectiveWidth = thumbnailWidth + gap;
+        var widthContainer = ui.frameStrip || ui.frameList.parentElement || ui.frameList;
+        var containerStyle = getComputedStyle(widthContainer);
+        var paddingLeft = parseFloat(containerStyle.paddingLeft || "0");
+        var paddingRight = parseFloat(containerStyle.paddingRight || "0");
+        var availableWidth = Math.max(0, widthContainer.getBoundingClientRect().width - paddingLeft - paddingRight);
+        var thumbnailWidth = getAnimationFrameThumbnailWidth(ui);
+        var gap = getAnimationFrameGap(ui);
+        var effectiveWidth = thumbnailWidth + gap;
 
-	if (frameListWidth <= 0 || effectiveWidth <= 0) {
-	return 0;
-	}
+        if (availableWidth <= 0 || effectiveWidth <= 0) {
+        return 0;
+        }
 
-	        var windowSize = Math.floor((frameListWidth + gap) / effectiveWidth);
+                var totalThumbnailWidth = frameCount * thumbnailWidth + Math.max(0, frameCount - 1) * gap;
 
-	        return Math.max(1, Math.min(frameCount, windowSize));
+                if (totalThumbnailWidth <= availableWidth) {
+                        return frameCount;
+                }
+
+                var windowSize = Math.floor((availableWidth + gap) / effectiveWidth);
+
+                return Math.max(1, Math.min(frameCount, windowSize));
 }
 
 function clampAnimationFrameStartIndex(frameCount, windowSize) {
@@ -1903,7 +1912,14 @@ function updateAnimationFrameSlider(frameCount, windowSize, maxStartIndex) {
         ui.slider.max = maxIndex;
         ui.slider.step = 1;
         ui.slider.value = animationFrameStartIndex;
-        ui.slider.disabled = frameCount <= windowSize;
+
+        var sliderContainer = ui.slider.parentElement;
+        var shouldDisable = frameCount <= windowSize;
+        ui.slider.disabled = shouldDisable;
+
+        if (sliderContainer) {
+                sliderContainer.style.display = shouldDisable ? "none" : "";
+        }
 }
 
 function scrollAnimationFrameIntoView(frameIndex) {
