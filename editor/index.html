@@ -548,35 +548,40 @@
 									<span id="animatedCheckboxIcon" class="bitsy_icon" style="margin-left: var(--bitsy-space-s);">expand_less</span>
 								</label>
 							</div>
-							<div id="animation" style="display:none;">
-								<div class="bitsy-menu-group">
-									<div class="bitsy-thumbnail">
-										<div class="bitsy-thumbnail-image-container">
-											<img id="animationThumbnailPreview" />
-										</div>
-										<label class="bitsy-menu-label">
-											<span class="localize animation_preview">preview</span>
-										</label>
-									</div>
-									<div id="animationKeyframe1" class="bitsy-thumbnail" onclick="on_paint_frame1();">
-										<div class="bitsy-thumbnail-image-container">
-											<img id="animationThumbnailFrame1" />
-										</div>
-										<label class="bitsy-menu-label">
-											<span class="localize animation_frame1">frame 1</span>
-										</label>
-									</div>
-									<div id="animationKeyframe2" class="bitsy-thumbnail" onclick="on_paint_frame2();">
-										<div class="bitsy-thumbnail-image-container">
-											<img id="animationThumbnailFrame2" />
-										</div>
-										<label class="bitsy-menu-label">
-											<span class="localize animation_frame2">frame 2</span>
-										</label>
-									</div>
-								</div>
-							</div>
-						</div>
+<div id="animation" style="display:none;">
+<div class="bitsy-menu-group">
+<div class="bitsy-thumbnail">
+<div class="bitsy-thumbnail-image-container">
+<img id="animationThumbnailPreview" />
+</div>
+<label class="bitsy-menu-label">
+<span class="localize animation_preview">preview</span>
+</label>
+</div>
+<div id="animationFrameStrip">
+<button id="animationFramePrev" class="bitsy-thumbnail animation-frame-nav" onclick="onNavigateAnimationFrame(-1);">
+<span class="bitsy_icon">chevron_left</span>
+</button>
+<div id="animationFrameListWrapper">
+<div id="animationFrameActions">
+<button id="animationAddFrame" class="bitsy-thumbnail animation-frame-action" onclick="on_add_animation_frame();" title="add frame" aria-label="add frame">
+<span class="bitsy_icon" id="animationAddFrameIcon">add</span>
+</button>
+<button id="animationRemoveFrame" class="bitsy-thumbnail animation-frame-action" onclick="on_remove_animation_frame();" title="delete frame" aria-label="delete frame">
+<span class="bitsy_icon" id="animationRemoveFrameIcon">delete</span>
+</button>
+</div>
+<div id="animationFrameList" onwheel="onAnimationFrameWheel(event);">
+<div id="animationFrames"></div>
+</div>
+</div>
+<button id="animationFrameNext" class="bitsy-thumbnail animation-frame-nav" onclick="onNavigateAnimationFrame(1);">
+<span class="bitsy_icon">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+                                                </div>
 
 						<div id="newPaintMenu" class="bitsy-menu"></div>
 					</div>

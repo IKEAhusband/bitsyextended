@@ -1,21 +1,85 @@
 #animationOuter {
-	margin-top: var(--bitsy-space-s);
-	margin-bottom: var(--bitsy-space-m);
+        margin-top: var(--bitsy-space-s);
+        margin-bottom: var(--bitsy-space-m);
 }
 
 #animation .bitsy-thumbnail {
-	font-size: 85%;
+        font-size: 85%;
 }
 
 #animation .bitsy-thumbnail .bitsy-thumbnail-image-container {
-	border-color: var(--bitsy-color-accent-1);
+        border-color: var(--bitsy-color-accent-1);
 }
 
 #animation .bitsy-thumbnail.bitsy-thumbnail-selected .bitsy-thumbnail-image-container {
-	border-color: var(--bitsy-color-main-2);
+        border-color: var(--bitsy-color-main-2);
 }
 
 #animation .bitsy-thumbnail img {
-	width: 3em;
-	height: 3em;
+        width: 3em;
+        height: 3em;
+}
+
+#animationFrameStrip {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--bitsy-space-s);
+}
+
+#animationFrameListWrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        min-width: 0;
+}
+
+#animationFrameList {
+        display: flex;
+        align-items: stretch;
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        gap: var(--bitsy-space-s);
+        padding: calc(var(--bitsy-space-xs) + var(--bitsy-space-m)) var(--bitsy-space-xs) var(--bitsy-space-xxs);
+}
+
+#animationFrames {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: var(--bitsy-space-s);
+}
+
+#animationFrames .bitsy-thumbnail {
+        flex: 0 0 auto;
+}
+
+#animationFrameActions {
+        position: absolute;
+        top: var(--bitsy-space-xxs);
+        right: var(--bitsy-space-xxs);
+        display: flex;
+        gap: var(--bitsy-space-xxs);
+}
+
+.animation-frame-action {
+        min-width: 2em;
+        height: 2em;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+}
+
+.animation-frame-action .bitsy_icon {
+        font-size: 1em;
+}
+
+.animation-frame-nav {
+        min-width: 2.5em;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+}
+
+.animation-frame-nav .bitsy_icon {
+        font-size: 1.2em;
 }
