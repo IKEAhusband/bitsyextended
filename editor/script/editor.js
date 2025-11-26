@@ -1208,37 +1208,62 @@ function removeAllItems( id ) {
 	}
 }
 
-function updateAnimationUI() {
-	//todo
+function getCurrentDrawingData() {
+	if (drawing.type === TileType.Tile) {
+		return tile[drawing.id];
+	}
+	else if (drawing.type === TileType.Sprite || drawing.type === TileType.Avatar) {
+		return sprite[drawing.id];
+	}
+	else if (drawing.type === TileType.Item) {
+		return item[drawing.id];
+	}
+
+	return null;
 }
 
-function reloadTile() {
-	// animation UI
-	if ( tile[drawing.id] && tile[drawing.id].animation.isAnimated ) {
-		paintTool.isCurDrawingAnimated = true;
-		document.getElementById("animatedCheckbox").checked = true;
+function updateAnimationUI() {
+	if (!drawing) {
+		return;
+	}
 
-		if( paintTool.curDrawingFrameIndex == 0)
-		{
-			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
-			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
-		}
-		else if( paintTool.curDrawingFrameIndex == 1 )
-		{
-			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
-			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
-		}
+	var drawingData = getCurrentDrawingData();
 
+	if (!drawingData) {
+		return;
+	}
+
+	var frames = renderer.GetDrawingSource(drawing.drw) || [];
+	var frameCount = frames.length;
+
+	drawingData.animation.frameCount = frameCount;
+	drawingData.animation.isAnimated = frameCount > 1;
+	paintTool.isCurDrawingAnimated = drawingData.animation.isAnimated;
+	document.getElementById("animatedCheckbox").checked = drawingData.animation.isAnimated;
+
+	if (frameCount <= 0) {
+		return;
+	}
+
+	if (paintTool.curDrawingFrameIndex >= frameCount) {
+		paintTool.curDrawingFrameIndex = Math.max(0, frameCount - 1);
+	}
+
+	if (drawingData.animation.isAnimated) {
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
 		renderAnimationPreview(drawing);
 	}
 	else {
-		paintTool.isCurDrawingAnimated = false;
-		document.getElementById("animatedCheckbox").checked = false;
+		paintTool.curDrawingFrameIndex = 0;
 		document.getElementById("animation").setAttribute("style","display:none;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
 	}
+}
+
+function reloadTile() {
+// animation UI
+updateAnimationUI();
 
 	// wall UI
 	updateWallCheckboxOnCurrentTile();
@@ -1271,32 +1296,8 @@ function updateWallCheckboxOnCurrentTile() {
 }
 
 function reloadSprite() {
-	// animation UI
-	if ( sprite[drawing.id] && sprite[drawing.id].animation.isAnimated ) {
-		paintTool.isCurDrawingAnimated = true;
-		document.getElementById("animatedCheckbox").checked = true;
-
-		if( paintTool.curDrawingFrameIndex == 0)
-		{
-			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
-			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
-		}
-		else if( paintTool.curDrawingFrameIndex == 1 )
-		{
-			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
-			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
-		}
-
-		document.getElementById("animation").setAttribute("style","display:block;");
-		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
-		renderAnimationPreview(drawing);
-	}
-	else {
-		paintTool.isCurDrawingAnimated = false;
-		document.getElementById("animatedCheckbox").checked = false;
-		document.getElementById("animation").setAttribute("style","display:none;");
-		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
-	}
+// animation UI
+updateAnimationUI();
 
 	// dialog UI
 	reloadDialogUI()
@@ -1310,32 +1311,8 @@ function reloadSprite() {
 
 // TODO consolidate these drawing related methods
 function reloadItem() {
-	// animation UI
-	if ( item[drawing.id] && item[drawing.id].animation.isAnimated ) {
-		paintTool.isCurDrawingAnimated = true;
-		document.getElementById("animatedCheckbox").checked = true;
-
-		if( paintTool.curDrawingFrameIndex == 0)
-		{
-			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
-			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
-		}
-		else if( paintTool.curDrawingFrameIndex == 1 )
-		{
-			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
-			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
-		}
-
-		document.getElementById("animation").setAttribute("style","display:block;");
-		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
-		renderAnimationPreview(drawing);
-	}
-	else {
-		paintTool.isCurDrawingAnimated = false;
-		document.getElementById("animatedCheckbox").checked = false;
-		document.getElementById("animation").setAttribute("style","display:none;");
-		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
-	}
+// animation UI
+updateAnimationUI();
 
 	// dialog UI
 	reloadDialogUI()
@@ -1693,13 +1670,93 @@ function editDrawingAtCoordinate(x, y) {
 
 var animationThumbnailRenderer = new ThumbnailRenderer();
 function renderAnimationThumbnail(imgId, drawing, frameIndex) {
-	animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
+animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
+}
+
+function renderAnimationFrames(drawing) {
+        var framesContainer = document.getElementById("animationFrames");
+
+        if (!framesContainer) {
+                return;
+        }
+
+        framesContainer.innerHTML = "";
+
+        var frames = renderer.GetDrawingSource(drawing.drw) || [];
+        var addButton = document.getElementById("animationAddFrame");
+        var removeButton = document.getElementById("animationRemoveFrame");
+        var addIcon = document.getElementById("animationAddFrameIcon");
+        var removeIcon = document.getElementById("animationRemoveFrameIcon");
+
+        if (addIcon) {
+                iconUtils.LoadIcon(addIcon, "add");
+        }
+
+        if (removeIcon) {
+                iconUtils.LoadIcon(removeIcon, "delete");
+        }
+
+        if (addButton) {
+                addButton.disabled = !paintTool.isCurDrawingAnimated;
+        }
+
+        if (removeButton) {
+                removeButton.disabled = !paintTool.isCurDrawingAnimated || frames.length <= 1;
+        }
+
+        for (var i = 0; i < frames.length; i++) {
+                var frameThumbnail = document.createElement("div");
+		frameThumbnail.className = "bitsy-thumbnail";
+
+		if (i === paintTool.curDrawingFrameIndex) {
+			frameThumbnail.className += " bitsy-thumbnail-selected";
+		}
+
+		frameThumbnail.dataset.frameIndex = i;
+		frameThumbnail.onclick = (function(index) {
+			return function() {
+				selectAnimationFrame(index);
+			};
+		})(i);
+
+		var imageContainer = document.createElement("div");
+		imageContainer.className = "bitsy-thumbnail-image-container";
+		var img = document.createElement("img");
+		var imgId = "animationThumbnailFrame" + i;
+		img.id = imgId;
+		imageContainer.appendChild(img);
+
+		frameThumbnail.appendChild(imageContainer);
+
+		var label = document.createElement("label");
+		label.className = "bitsy-menu-label";
+		label.innerText = "frame " + (i + 1);
+		frameThumbnail.appendChild(label);
+
+		framesContainer.appendChild(frameThumbnail);
+
+		renderAnimationThumbnail(imgId, drawing, i);
+	}
+}
+
+function scrollAnimationFrameIntoView(frameIndex) {
+	var framesContainer = document.getElementById("animationFrames");
+
+	if (!framesContainer) {
+		return;
+	}
+
+	var selectedFrame = framesContainer.querySelector('[data-frame-index=\"' + frameIndex + '\"]');
+
+	if (selectedFrame && selectedFrame.scrollIntoView) {
+		selectedFrame.scrollIntoView({ block: "nearest", inline: "nearest" });
+	}
 }
 
 function renderAnimationPreview(drawing) {
-	renderAnimationThumbnail("animationThumbnailPreview", drawing);
-	renderAnimationThumbnail("animationThumbnailFrame1", drawing, 0);
-	renderAnimationThumbnail("animationThumbnailFrame2", drawing, 1);
+renderAnimationThumbnail("animationThumbnailPreview", drawing, paintTool.curDrawingFrameIndex);
+renderAnimationFrames(drawing);
+scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
 }
 
 function renderPaintThumbnail(drawing) {
@@ -2335,25 +2392,40 @@ function on_toggle_animated() {
 	}
 }
 
+function setDrawingAnimationMetadata(drawingData, frameCount) {
+	drawingData.animation.isAnimated = frameCount > 1;
+	drawingData.animation.frameIndex = 0;
+	drawingData.animation.frameCount = frameCount;
+	paintTool.isCurDrawingAnimated = drawingData.animation.isAnimated;
+	}
+
+function copyFrameData(frameData) {
+	var newFrame = [];
+
+	for (var y = 0; y < frameData.length; y++) {
+	newFrame.push(frameData[y].slice(0));
+	}
+
+	return newFrame;
+	}
+
 function addSpriteAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = true;
 	paintTool.curDrawingFrameIndex = 0;
 
-	//mark sprite as animated
-	sprite[drawing.id].animation.isAnimated = true;
-	sprite[drawing.id].animation.frameIndex = 0;
-	sprite[drawing.id].animation.frameCount = 2;
-
 	//add blank frame to sprite (or restore removed animation)
 	var spriteImageId = "SPR_" + drawing.id;
+	var updatedFrames = null;
 
 	if (sprite[drawing.id].cachedAnimation && sprite[drawing.id].cachedAnimation.length >= 1) {
-		addDrawingAnimation(spriteImageId, sprite[drawing.id].cachedAnimation[0]);
+	updatedFrames = addDrawingAnimation(spriteImageId, sprite[drawing.id].cachedAnimation);
 	}
 	else {
-		addDrawingAnimation(spriteImageId);
+	updatedFrames = addDrawingAnimation(spriteImageId);
 	}
+
+	setDrawingAnimationMetadata(sprite[drawing.id], updatedFrames.length);
 
 	// refresh images
 	renderer.ClearCache();
@@ -2364,7 +2436,7 @@ function addSpriteAnimation() {
 
 	// reset animations
 	resetAllAnimations();
-}
+	}
 
 function removeSpriteAnimation() {
 	//set editor mode
@@ -2373,7 +2445,8 @@ function removeSpriteAnimation() {
 	//mark sprite as non-animated
 	sprite[drawing.id].animation.isAnimated = false;
 	sprite[drawing.id].animation.frameIndex = 0;
-	sprite[drawing.id].animation.frameCount = 0;
+	sprite[drawing.id].animation.frameCount = 1;
+	paintTool.curDrawingFrameIndex = 0;
 
 	//remove all but the first frame of the sprite
 	var spriteImageId = "SPR_" + drawing.id;
@@ -2389,26 +2462,25 @@ function removeSpriteAnimation() {
 
 	// reset animations
 	resetAllAnimations();
-}
+	}
 
 function addTileAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = true;
 	paintTool.curDrawingFrameIndex = 0;
 
-	//mark tile as animated
-	tile[drawing.id].animation.isAnimated = true;
-	tile[drawing.id].animation.frameIndex = 0;
-	tile[drawing.id].animation.frameCount = 2;
-
 	//add blank frame to tile (or restore removed animation)
 	var tileImageId = "TIL_" + drawing.id;
+	var updatedFrames = null;
+
 	if (tile[drawing.id].cachedAnimation && tile[drawing.id].cachedAnimation.length >= 1) {
-		addDrawingAnimation(tileImageId, tile[drawing.id].cachedAnimation[0]);
+	updatedFrames = addDrawingAnimation(tileImageId, tile[drawing.id].cachedAnimation);
 	}
 	else {
-		addDrawingAnimation(tileImageId);
+	updatedFrames = addDrawingAnimation(tileImageId);
 	}
+
+	setDrawingAnimationMetadata(tile[drawing.id], updatedFrames.length);
 
 	// refresh images
 	renderer.ClearCache();
@@ -2419,7 +2491,7 @@ function addTileAnimation() {
 
 	// reset animations
 	resetAllAnimations();
-}
+	}
 
 function removeTileAnimation() {
 	//set editor mode
@@ -2428,7 +2500,8 @@ function removeTileAnimation() {
 	//mark tile as non-animated
 	tile[drawing.id].animation.isAnimated = false;
 	tile[drawing.id].animation.frameIndex = 0;
-	tile[drawing.id].animation.frameCount = 0;
+	tile[drawing.id].animation.frameCount = 1;
+	paintTool.curDrawingFrameIndex = 0;
 
 	//remove all but the first frame of the tile
 	var tileImageId = "TIL_" + drawing.id;
@@ -2444,27 +2517,25 @@ function removeTileAnimation() {
 
 	// reset animations
 	resetAllAnimations();
-}
+	}
 
-// TODO : so much duplication it makes me sad :(
+	// TODO : so much duplication it makes me sad :(
 function addItemAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = true;
 	paintTool.curDrawingFrameIndex = 0;
 
-	//mark item as animated
-	item[drawing.id].animation.isAnimated = true;
-	item[drawing.id].animation.frameIndex = 0;
-	item[drawing.id].animation.frameCount = 2;
-
 	//add blank frame to item (or restore removed animation)
 	var itemImageId = "ITM_" + drawing.id;
+	var updatedFrames = null;
 	if (item[drawing.id].cachedAnimation && item[drawing.id].cachedAnimation.length >= 1) {
-		addDrawingAnimation(itemImageId, item[drawing.id].cachedAnimation[0]);
+	updatedFrames = addDrawingAnimation(itemImageId, item[drawing.id].cachedAnimation);
 	}
 	else {
-		addDrawingAnimation(itemImageId);
+	updatedFrames = addDrawingAnimation(itemImageId);
 	}
+
+	setDrawingAnimationMetadata(item[drawing.id], updatedFrames.length);
 
 	// refresh images
 	renderer.ClearCache();
@@ -2475,7 +2546,7 @@ function addItemAnimation() {
 
 	// reset animations
 	resetAllAnimations();
-}
+	}
 
 function removeItemAnimation() {
 	//set editor mode
@@ -2484,7 +2555,8 @@ function removeItemAnimation() {
 	//mark item as non-animated
 	item[drawing.id].animation.isAnimated = false;
 	item[drawing.id].animation.frameIndex = 0;
-	item[drawing.id].animation.frameCount = 0;
+	item[drawing.id].animation.frameCount = 1;
+	paintTool.curDrawingFrameIndex = 0;
 
 	//remove all but the first frame of the item
 	var itemImageId = "ITM_" + drawing.id;
@@ -2500,52 +2572,135 @@ function removeItemAnimation() {
 
 	// reset animations
 	resetAllAnimations();
-}
-
-function addDrawingAnimation(drwId, frameData) {
-	var drawingSource = renderer.GetDrawingSource(drwId);
-
-	if (!frameData) {
-		var firstFrame = drawingSource[0];
-
-		// copy first frame data into second frame
-		frameData = [];
-		for (var y = 0; y < tilesize; y++) {
-			frameData.push([]);
-			for (var x = 0; x < tilesize; x++) {
-				frameData[y].push(firstFrame[y][x]);
-			}
-		}
 	}
 
-	drawingSource[1] = frameData;
+function addDrawingAnimation(drwId, frameData) {
+	var drawingSource = renderer.GetDrawingSource(drwId) || [];
+	var framesToAdd = [];
 
-	renderer.SetDrawingSource(drwId, drawingSource);
-}
+	if (frameData) {
+	if (Array.isArray(frameData[0]) && Array.isArray(frameData[0][0])) {
+	for (var i = 0; i < frameData.length; i++) {
+	framesToAdd.push(copyFrameData(frameData[i]));
+	}
+	}
+	else {
+	framesToAdd.push(copyFrameData(frameData));
+	}
+	}
+	else if (drawingSource.length > 0) {
+	framesToAdd.push(copyFrameData(drawingSource[drawingSource.length - 1]));
+	}
+
+	var updatedFrames = drawingSource.concat(framesToAdd);
+	renderer.SetDrawingSource(drwId, updatedFrames);
+
+	return renderer.GetDrawingSource(drwId);
+	}
 
 function removeDrawingAnimation(drwId) {
 	var drawingData = renderer.GetDrawingSource(drwId);
 	var oldDrawingData = drawingData.slice(0);
 	renderer.SetDrawingSource(drwId, [oldDrawingData[0]]);
-}
+	}
 
-// let's us restore the animation during the session if the user wants it back
+	// let's us restore the animation during the session if the user wants it back
 function cacheDrawingAnimation(drawing, sourceId) {
-	var drawingData = renderer.GetDrawingSource(sourceId);
-	var oldDrawingData = drawingData.slice(0);
-	drawing.cachedAnimation = [oldDrawingData[1]]; // ah the joys of javascript
-}
+	var drawingData = renderer.GetDrawingSource(sourceId) || [];
+	var cachedFrames = [];
+
+	for (var i = 1; i < drawingData.length; i++) {
+	cachedFrames.push(copyFrameData(drawingData[i]));
+	}
+
+	drawing.cachedAnimation = cachedFrames; // ah the joys of javascript
+	}
+
+function on_add_animation_frame() {
+        if (!paintTool.isCurDrawingAnimated) {
+        return;
+        }
+
+	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
+
+	if (drawingSource.length <= 0) {
+	return;
+	}
+
+	var baseFrame = drawingSource[Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1)] || drawingSource[0];
+	var newFrame = copyFrameData(baseFrame);
+
+	drawingSource.push(newFrame);
+	renderer.SetDrawingSource(drawing.drw, drawingSource);
+
+        paintTool.curDrawingFrameIndex = drawingSource.length - 1;
+
+        var drawingData = getCurrentDrawingData();
+
+        if (drawingData) {
+        setDrawingAnimationMetadata(drawingData, drawingSource.length);
+        drawingData.animation.frameIndex = paintTool.curDrawingFrameIndex;
+        }
+
+	renderer.ClearCache();
+	refreshGameData();
+	paintTool.reloadDrawing();
+	resetAllAnimations();
+
+        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+        }
+
+function on_remove_animation_frame() {
+        if (!paintTool.isCurDrawingAnimated) {
+        return;
+        }
+
+        var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
+
+        if (drawingSource.length <= 1) {
+        return;
+        }
+
+        drawingSource.splice(paintTool.curDrawingFrameIndex, 1);
+        renderer.SetDrawingSource(drawing.drw, drawingSource);
+
+        paintTool.curDrawingFrameIndex = Math.max(0, Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1));
+
+        var drawingData = getCurrentDrawingData();
+
+        if (drawingData) {
+        setDrawingAnimationMetadata(drawingData, drawingSource.length);
+        drawingData.animation.frameIndex = paintTool.curDrawingFrameIndex;
+        }
+
+        renderer.ClearCache();
+        refreshGameData();
+        paintTool.reloadDrawing();
+        resetAllAnimations();
+
+        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+        }
+
+function selectAnimationFrame(frameIndex) {
+	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
+
+	if (frameIndex < 0 || frameIndex >= drawingSource.length) {
+	return;
+	}
+
+	paintTool.curDrawingFrameIndex = frameIndex;
+
+	renderAnimationPreview(drawing);
+	paintTool.reloadDrawing();
+	}
 
 function on_paint_frame1() {
-	paintTool.curDrawingFrameIndex = 0;
-	paintTool.reloadDrawing();
-}
+        selectAnimationFrame(0);
+        }
 
 function on_paint_frame2() {
-	paintTool.curDrawingFrameIndex = 1;
-	paintTool.reloadDrawing();
-}
-
+	selectAnimationFrame(1);
+	}
 function getComplimentingColor(palId) {
 	if (!palId) palId = curDefaultPal();
 	var hsl = rgbToHsl( getPal(palId)[0][0], getPal(palId)[0][1], getPal(palId)[0][2] );
