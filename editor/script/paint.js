@@ -225,10 +225,10 @@ return getDrawingFrameData(drawing, frameIndex);
 		self.updateCanvas();
 	}
 
-	this.toggleWall = function(checked) {
-		if (drawing.type != TileType.Tile) {
-			return;
-		}
+        this.toggleWall = function(checked) {
+                if (drawing.type != TileType.Tile) {
+                        return;
+                }
 
 		if (drawing.isWall == undefined || drawing.isWall == null) {
 			// clear out any existing wall settings for this tile in any rooms
@@ -246,10 +246,26 @@ return getDrawingFrameData(drawing, frameIndex);
 
 		refreshGameData();
 
-		if (toggleWallUI != null && toggleWallUI != undefined) { // a bit hacky
-			toggleWallUI(checked);
-		}
-	}
+                if (toggleWallUI != null && toggleWallUI != undefined) { // a bit hacky
+                        toggleWallUI(checked);
+                }
+        }
+
+        this.toggleTransparentBgc = function(checked) {
+                if (drawing.type === TileType.Tile) {
+                        return;
+                }
+
+                drawing.bgc = checked ? (-1 * tileColorStartIndex) : 0;
+
+                refreshGameData();
+
+                if (toggleTransparentBgcUI != null && toggleTransparentBgcUI != undefined) {
+                        toggleTransparentBgcUI(checked);
+                }
+
+                self.updateCanvas();
+        }
 
 	this.getCurObject = function() {
 		return drawing;
