@@ -128,17 +128,23 @@
 					<span class="localize marker_tool_name">exits & endings</span>
 				</label>
 
-				<input type="checkbox" value="paintPanel" id="paintCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
-				<label title="show / hide paint window" for="paintCheck">
-					<span class="bitsy_icon icon_space_right">paint</span>
-					<span class="localize paint_tool_name">paint</span>
-				</label>
+<input type="checkbox" value="paintPanel" id="paintCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+<label title="show / hide paint window" for="paintCheck">
+<span class="bitsy_icon icon_space_right">paint</span>
+<span class="localize paint_tool_name">paint</span>
+</label>
 
-				<input type="checkbox" value="colorsPanel" id="colorsCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
-				<label title="show / hide color palette window" for="colorsCheck">
-					<span class="bitsy_icon icon_space_right">colors</span>
-					<span class="localize palette_tool_name">colors</span>
-				</label>
+<input type="checkbox" value="favoritesPanel" id="favoritesCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+<label title="show / hide favorites window" for="favoritesCheck">
+<span class="bitsy_icon icon_space_right">favorite</span>
+<span>favourite</span>
+</label>
+
+<input type="checkbox" value="colorsPanel" id="colorsCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+<label title="show / hide color palette window" for="colorsCheck">
+<span class="bitsy_icon icon_space_right">colors</span>
+<span class="localize palette_tool_name">colors</span>
+</label>
 
 				<input type="checkbox" value="dialogPanel" id="dialogCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
 				<label title="show / hide dialog window" for="dialogCheck">
@@ -605,13 +611,13 @@
 					</div>
 				</div>
 
-				<div id="findPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item">
-					<div class="bitsy-card-titlebar">
-						<span class="bitsy_icon">search</span>
+<div id="findPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item">
+<div class="bitsy-card-titlebar">
+<span class="bitsy_icon">search</span>
 
-						<span class="bitsy-card-title" title="find window" onmousedown="grabCard(event);">
-							<span class="localize find_tool">find</span>
-						</span>
+<span class="bitsy-card-title" title="find window" onmousedown="grabCard(event);">
+<span class="localize find_tool">find</span>
+</span>
 
 						<button title="show about page for find" onclick="showAbout('./tools/find', 'findPanel');">
 							<span class="bitsy_icon">help</span>
@@ -622,13 +628,38 @@
 						</button>
 					</div>
 
-					<div id="findPanelMain" class="bitsy-card-main">
-					</div>
-				</div>
+<div id="findPanelMain" class="bitsy-card-main">
+</div>
+</div>
 
-				<div id="colorsPanel" class="bitsy-card bitsy-workbench-item">
-					<div class="bitsy-card-titlebar">
-						<span class="bitsy_icon">colors</span>
+<div id="favoritesPanel" class="bitsy-card bitsy-workbench-item">
+<div class="bitsy-card-titlebar">
+<span class="bitsy_icon">favorite</span>
+
+<span class="bitsy-card-title" title="favorites window" onmousedown="grabCard(event);">
+<span>favourite</span>
+</span>
+
+<button title="minimize favorites window" class="bitsy-card-close-button" onclick="hidePanel('favoritesPanel');">
+<span class="bitsy_icon">close</span>
+</button>
+</div>
+
+<div class="bitsy-card-main">
+<div id="favoriteTilesEmptyState" class="controlBox">
+<span>There are no favorite tiles yet!</span>
+</div>
+<div class="bitsy-menu-scrollview">
+<div class="bitsy-menu-scrollcontent">
+<div id="favoriteTilesGrid" class="favorite-tiles-grid"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="colorsPanel" class="bitsy-card bitsy-workbench-item">
+<div class="bitsy-card-titlebar">
+<span class="bitsy_icon">colors</span>
 
 						<span class="bitsy-card-title" title="color palette window" onmousedown="grabCard(event);">
 							<span class="localize palette_tool_name">colors</span>
