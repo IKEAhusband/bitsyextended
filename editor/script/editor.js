@@ -1742,24 +1742,12 @@ function calculateAnimationFrameWindowSize(ui, frameCount) {
         var paddingLeft = parseFloat(frameListStyle.paddingLeft || "0");
         var paddingRight = parseFloat(frameListStyle.paddingRight || "0");
         var frameListWidth = Math.max(0, ui.frameList.getBoundingClientRect().width - paddingLeft - paddingRight);
-
-        if (frameListWidth <= 0 && ui.frameList.parentElement) {
-                frameListWidth = Math.max(
-                        0,
-                        ui.frameList.parentElement.getBoundingClientRect().width - paddingLeft - paddingRight
-                );
-        }
-
-        if (frameListWidth <= 0 && ui.framesContainer) {
-                frameListWidth = Math.max(0, ui.framesContainer.getBoundingClientRect().width);
-        }
-
         var thumbnailWidth = getAnimationFrameThumbnailWidth(ui);
         var gap = getAnimationFrameGap(ui);
         var effectiveWidth = thumbnailWidth + gap;
 
         if (frameListWidth <= 0 || effectiveWidth <= 0) {
-                return Math.max(1, frameCount);
+                return 1;
         }
 
         var windowSize = Math.floor((frameListWidth + gap) / effectiveWidth);
@@ -1783,9 +1771,6 @@ function renderAnimationFrames(drawing, options) {
         }
 
         var windowSize = options && options.windowSize !== undefined ? options.windowSize : calculateAnimationFrameWindowSize(ui, frames.length);
-        if (!windowSize || windowSize < 1) {
-                windowSize = calculateAnimationFrameWindowSize(ui, frames.length);
-        }
         var maxStartIndex = clampAnimationFrameStartIndex(frames.length, windowSize);
 
         ui.framesContainer.innerHTML = "";
