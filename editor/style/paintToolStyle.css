@@ -3,6 +3,30 @@
         margin-bottom: var(--bitsy-space-m);
 }
 
+#animationHeader {
+        display: flex;
+        align-items: center;
+        padding: 0 var(--bitsy-space-s);
+        margin-bottom: var(--bitsy-space-s);
+}
+
+#animationAddFrame {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--bitsy-space-xxs);
+        padding: var(--bitsy-space-xxs) var(--bitsy-space-s);
+        margin: 0;
+}
+
+#animationAddFrame .bitsy_icon {
+        font-size: 1em;
+        margin-right: 0;
+}
+
+.animation-add-frame-label {
+        font-size: 0.9em;
+}
+
 #animation .bitsy-thumbnail {
         font-size: 85%;
 }
@@ -41,8 +65,7 @@ padding-bottom: var(--bitsy-space-xxs);
         gap: var(--bitsy-space-s);
 }
 
-#animationFrames .bitsy-thumbnail,
-#animationAddFrame {
+#animationFrames .bitsy-thumbnail {
         flex: 0 0 auto;
 }
 
@@ -60,11 +83,5 @@ padding-bottom: var(--bitsy-space-xxs);
 .animation-add-frame {
         justify-content: center;
         align-items: center;
-}
-
-.animation-add-frame .bitsy-thumbnail-image-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: var(--bitsy-color-bg-2);
+        font-size: 90%;
 }
