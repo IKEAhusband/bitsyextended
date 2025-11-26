@@ -529,16 +529,24 @@
 							</div>
 						</div>
 
-						<div id="wall" class="controlBox" style="display:none;">
-							<input type="checkbox" id="wallCheckbox" onchange="on_toggle_wall(event);" autocomplete="off" >
-							<label title="make tile an impassible wall" for="wallCheckbox" class="bitsy-menu-label">
-								<span id="wallCheckboxIcon" class="bitsy_icon">wall_off</span>
-								<span class="localize wall_toggle">wall</span>
-							</label>
-						</div>
+                                                <div id="wall" class="controlBox" style="display:none;">
+                                                        <input type="checkbox" id="wallCheckbox" onchange="on_toggle_wall(event);" autocomplete="off" >
+                                                        <label title="make tile an impassible wall" for="wallCheckbox" class="bitsy-menu-label">
+                                                                <span id="wallCheckboxIcon" class="bitsy_icon">wall_off</span>
+                                                                <span class="localize wall_toggle">wall</span>
+                                                        </label>
+                                                </div>
 
-						<div id="dialog" style="display:none;">
-						</div>
+<div id="transparentBgc" class="controlBox" style="display:none;">
+<input type="checkbox" id="transparentBgcCheckbox" onchange="on_toggle_transparent_bgc(event);" autocomplete="off" >
+<label title="make drawing background transparent" for="transparentBgcCheckbox" class="bitsy-menu-label">
+<span id="transparentBgcCheckboxIcon" class="bitsy_icon">wall_off</span>
+<span class="localize transparent_bgc_toggle">Transparent BGC</span>
+</label>
+</div>
+
+                                                <div id="dialog" style="display:none;">
+                                                </div>
 
                                                 <div id="animationOuter" class="controlBox">
                                                         <div id="animationHeader">
