@@ -1877,7 +1877,14 @@ function renderAnimationPreview(drawing) {
         }
 
         renderAnimationThumbnail(previewId, drawing);
-        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+
+        requestAnimationFrame(function() {
+                if (!paintTool || !paintTool.isCurDrawingAnimated) {
+                        return;
+                }
+
+                scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+        });
 }
 
 function renderPaintThumbnail(drawing) {
