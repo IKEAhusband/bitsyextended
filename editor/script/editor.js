@@ -1680,6 +1680,10 @@ animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
 }
 
 function renderAnimationFrames(drawing) {
+	var frames = renderer.GetDrawingSource(drawing.drw) || [];
+
+	updateAnimationFrameSlider(frames.length);
+
 	var framesContainer = document.getElementById("animationFrames");
 
 	if (!framesContainer) {
@@ -1687,8 +1691,6 @@ function renderAnimationFrames(drawing) {
 	}
 
 	framesContainer.innerHTML = "";
-
-	var frames = renderer.GetDrawingSource(drawing.drw) || [];
 
 	for (var i = 0; i < frames.length; i++) {
 		var frameThumbnail = document.createElement("div");
@@ -1722,7 +1724,22 @@ function renderAnimationFrames(drawing) {
 		framesContainer.appendChild(frameThumbnail);
 
 		renderAnimationThumbnail(imgId, drawing, i);
+}
+}
+
+function updateAnimationFrameSlider(frameCount) {
+	var slider = document.getElementById("animationFrameSlider");
+
+	if (!slider) {
+		return;
 	}
+
+	var maxIndex = Math.max(0, frameCount - 1);
+	slider.min = 0;
+	slider.max = maxIndex;
+	slider.step = 1;
+	slider.value = Math.min(maxIndex, paintTool.curDrawingFrameIndex);
+	slider.disabled = frameCount <= 1;
 }
 
 function scrollAnimationFrameIntoView(frameIndex) {
@@ -2684,24 +2701,24 @@ function onNavigateAnimationFrame(direction) {
 	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
 
 	if (drawingSource.length <= 1) {
-	scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
-	return;
+		scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+		return;
 	}
 
 	var nextIndex = paintTool.curDrawingFrameIndex + direction;
 	nextIndex = Math.max(0, Math.min(drawingSource.length - 1, nextIndex));
 
 	if (nextIndex === paintTool.curDrawingFrameIndex) {
-	scrollAnimationFrameIntoView(nextIndex);
-	return;
+		scrollAnimationFrameIntoView(nextIndex);
+		return;
 	}
 
 	selectAnimationFrame(nextIndex);
-	}
+}
 
 function onAnimationFrameWheel(e) {
 	if (!paintTool.isCurDrawingAnimated) {
-	return;
+		return;
 	}
 
 	e.preventDefault();
@@ -2709,11 +2726,32 @@ function onAnimationFrameWheel(e) {
 	var direction = (e.deltaY > 0 || e.deltaX > 0) ? 1 : -1;
 
 	onNavigateAnimationFrame(direction);
+}
+
+function onAnimationFrameSliderChange(value) {
+	var frames = renderer.GetDrawingSource(drawing.drw) || [];
+
+	if (frames.length <= 0) {
+		return;
 	}
 
-function on_paint_frame1() {
-	selectAnimationFrame(0);
+	var maxIndex = frames.length - 1;
+	var frameIndex = Math.max(0, Math.min(maxIndex, parseInt(value, 10) || 0));
+
+	if (frameIndex === paintTool.curDrawingFrameIndex) {
+		scrollAnimationFrameIntoView(frameIndex);
+		return;
 	}
+
+	paintTool.curDrawingFrameIndex = frameIndex;
+
+	renderAnimationPreview(drawing);
+	paintTool.reloadDrawing();
+}
+
+function on_paint_frame1() {
+selectAnimationFrame(0);
+}
 
 function on_paint_frame2() {
 	selectAnimationFrame(1);
