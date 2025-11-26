@@ -1282,16 +1282,19 @@ function reloadTile() {
 // animation UI
 updateAnimationUI();
 
-	// wall UI
-	updateWallCheckboxOnCurrentTile();
+        // wall UI
+        updateWallCheckboxOnCurrentTile();
 
-	updateDrawingNameUI(true);
+        // transparent background UI
+        setTransparentBgcVisibility(false);
 
-	paintTool.updateCanvas();
+        updateDrawingNameUI(true);
+
+        paintTool.updateCanvas();
 }
 
 function updateWallCheckboxOnCurrentTile() {
-	var isCurTileWall = false;
+        var isCurTileWall = false;
 
 	if( tile[ drawing.id ].isWall == undefined || tile[ drawing.id ].isWall == null ) {
 		if (room[state.room]) {
@@ -1306,23 +1309,46 @@ function updateWallCheckboxOnCurrentTile() {
 		document.getElementById("wallCheckbox").checked = true;
 		iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), "wall_on");
 	}
-	else {
-		document.getElementById("wallCheckbox").checked = false;
-		iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), "wall_off");
-	}
+        else {
+                document.getElementById("wallCheckbox").checked = false;
+                iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), "wall_off");
+        }
+}
+
+function updateTransparentBgcCheckboxOnCurrentDrawing() {
+        var isTransparent = drawing.bgc < 0;
+
+        var checkbox = document.getElementById("transparentBgcCheckbox");
+        if (checkbox == null) {
+                return;
+        }
+
+        checkbox.checked = isTransparent;
+        iconUtils.LoadIcon(document.getElementById("transparentBgcCheckboxIcon"), isTransparent ? "check_box" : "check_box_outline_blank");
+}
+
+function setTransparentBgcVisibility(isVisible) {
+        var bgcElement = document.getElementById("transparentBgc");
+        if (bgcElement) {
+                bgcElement.setAttribute("style", isVisible ? "display:block;" : "display:none;");
+        }
 }
 
 function reloadSprite() {
 // animation UI
 updateAnimationUI();
 
-	// dialog UI
-	reloadDialogUI()
+        // dialog UI
+        reloadDialogUI()
 
-	updateDrawingNameUI( drawing.id != "A" );
+        // transparent background UI
+        updateTransparentBgcCheckboxOnCurrentDrawing();
+        setTransparentBgcVisibility(true);
 
-	// update paint canvas
-	paintTool.updateCanvas();
+        updateDrawingNameUI( drawing.id != "A" );
+
+        // update paint canvas
+        paintTool.updateCanvas();
 
 }
 
@@ -1331,13 +1357,17 @@ function reloadItem() {
 // animation UI
 updateAnimationUI();
 
-	// dialog UI
-	reloadDialogUI()
+        // dialog UI
+        reloadDialogUI()
 
-	updateDrawingNameUI(true);
+        // transparent background UI
+        updateTransparentBgcCheckboxOnCurrentDrawing();
+        setTransparentBgcVisibility(true);
 
-	// update paint canvas
-	paintTool.updateCanvas();
+        updateDrawingNameUI(true);
+
+        // update paint canvas
+        paintTool.updateCanvas();
 
 }
 
@@ -1549,13 +1579,14 @@ function on_paint_avatar() {
 }
 
 function on_paint_avatar_ui_update() {
-	document.getElementById("dialog").setAttribute("style","display:none;");
-	document.getElementById("wall").setAttribute("style","display:none;");
-	// TODO : make navigation commands un-clickable
-	document.getElementById("animationOuter").setAttribute("style","display:block;");
-	updateDrawingNameUI(false);
-	document.getElementById("paintOptionAvatar").checked = true;
-	document.getElementById("showInventoryButton").setAttribute("style","display:none;");
+        document.getElementById("dialog").setAttribute("style","display:none;");
+        document.getElementById("wall").setAttribute("style","display:none;");
+        setTransparentBgcVisibility(true);
+        // TODO : make navigation commands un-clickable
+        document.getElementById("animationOuter").setAttribute("style","display:block;");
+        updateDrawingNameUI(false);
+        document.getElementById("paintOptionAvatar").checked = true;
+        document.getElementById("showInventoryButton").setAttribute("style","display:none;");
 
 	var disableForAvatarElements = document.getElementsByClassName("disableForAvatar");
 	for (var i = 0; i < disableForAvatarElements.length; i++) {
@@ -1575,13 +1606,14 @@ function on_paint_tile() {
 }
 
 function on_paint_tile_ui_update() {
-	document.getElementById("dialog").setAttribute("style","display:none;");
-	document.getElementById("wall").setAttribute("style","display:block;");
-	document.getElementById("animationOuter").setAttribute("style","display:block;");
-	updateDrawingNameUI(true);
-	//document.getElementById("animation").setAttribute("style","display:block;");
-	document.getElementById("paintOptionTile").checked = true;
-	document.getElementById("showInventoryButton").setAttribute("style","display:none;");
+        document.getElementById("dialog").setAttribute("style","display:none;");
+        document.getElementById("wall").setAttribute("style","display:block;");
+        setTransparentBgcVisibility(false);
+        document.getElementById("animationOuter").setAttribute("style","display:block;");
+        updateDrawingNameUI(true);
+        //document.getElementById("animation").setAttribute("style","display:block;");
+        document.getElementById("paintOptionTile").checked = true;
+        document.getElementById("showInventoryButton").setAttribute("style","display:none;");
 
 	var disableForAvatarElements = document.getElementsByClassName("disableForAvatar");
 	for (var i = 0; i < disableForAvatarElements.length; i++) {
@@ -1609,13 +1641,14 @@ function on_paint_sprite() {
 }
 
 function on_paint_sprite_ui_update() {
-	document.getElementById("dialog").setAttribute("style","display:block;");
-	document.getElementById("wall").setAttribute("style","display:none;");
-	document.getElementById("animationOuter").setAttribute("style","display:block;");
-	updateDrawingNameUI(true);
-	//document.getElementById("animation").setAttribute("style","display:block;");
-	document.getElementById("paintOptionSprite").checked = true;
-	document.getElementById("showInventoryButton").setAttribute("style","display:none;");
+        document.getElementById("dialog").setAttribute("style","display:block;");
+        document.getElementById("wall").setAttribute("style","display:none;");
+        setTransparentBgcVisibility(true);
+        document.getElementById("animationOuter").setAttribute("style","display:block;");
+        updateDrawingNameUI(true);
+        //document.getElementById("animation").setAttribute("style","display:block;");
+        document.getElementById("paintOptionSprite").checked = true;
+        document.getElementById("showInventoryButton").setAttribute("style","display:none;");
 
 	var disableForAvatarElements = document.getElementsByClassName("disableForAvatar");
 	for (var i = 0; i < disableForAvatarElements.length; i++) {
@@ -1636,13 +1669,14 @@ function on_paint_item() {
 }
 
 function on_paint_item_ui_update() {
-	document.getElementById("dialog").setAttribute("style","display:block;");
-	document.getElementById("wall").setAttribute("style","display:none;");
-	document.getElementById("animationOuter").setAttribute("style","display:block;");
-	updateDrawingNameUI(true);
-	//document.getElementById("animation").setAttribute("style","display:block;");
-	document.getElementById("paintOptionItem").checked = true;
-	document.getElementById("showInventoryButton").setAttribute("style","display:inline-block;");
+        document.getElementById("dialog").setAttribute("style","display:block;");
+        document.getElementById("wall").setAttribute("style","display:none;");
+        setTransparentBgcVisibility(true);
+        document.getElementById("animationOuter").setAttribute("style","display:block;");
+        updateDrawingNameUI(true);
+        //document.getElementById("animation").setAttribute("style","display:block;");
+        document.getElementById("paintOptionItem").checked = true;
+        document.getElementById("showInventoryButton").setAttribute("style","display:inline-block;");
 
 	var disableForAvatarElements = document.getElementsByClassName("disableForAvatar");
 	for (var i = 0; i < disableForAvatarElements.length; i++) {
@@ -2119,11 +2153,19 @@ function updateFontDescriptionUI() {
 }
 
 function on_toggle_wall(e) {
-	paintTool.toggleWall( e.target.checked );
+        paintTool.toggleWall( e.target.checked );
 }
 
 function toggleWallUI(checked) {
-	iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), checked ? "wall_on" : "wall_off");
+        iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), checked ? "wall_on" : "wall_off");
+}
+
+function on_toggle_transparent_bgc(e) {
+        paintTool.toggleTransparentBgc( e.target.checked );
+}
+
+function toggleTransparentBgcUI(checked) {
+        iconUtils.LoadIcon(document.getElementById("transparentBgcCheckboxIcon"), checked ? "check_box" : "check_box_outline_blank");
 }
 
 function hideAbout() {
