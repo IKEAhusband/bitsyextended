@@ -53,7 +53,8 @@
 
 #animationFrameStrip {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: var(--bitsy-space-s);
 }
 
@@ -66,6 +67,16 @@
         padding-bottom: var(--bitsy-space-xxs);
 }
 
+#animationFrameSliderContainer {
+        width: 100%;
+}
+
+#animationFrameSlider {
+        width: 100%;
+        margin: 0;
+        accent-color: var(--bitsy-color-main-2);
+}
+
 #animationFrames {
         display: flex;
         flex-wrap: nowrap;
@@ -74,17 +85,6 @@
 
 #animationFrames .bitsy-thumbnail {
         flex: 0 0 auto;
-}
-
-.animation-frame-nav {
-        min-width: 2.5em;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-}
-
-.animation-frame-nav .bitsy_icon {
-        font-size: 1.2em;
 }
 
 .animation-add-frame {
