@@ -83,53 +83,63 @@ function ThumbnailRenderer() {
 		}
 	}
 
-	function render(imgId,drawing,frameIndex,imgElement) {
-		var isAnimated = (frameIndex === undefined || frameIndex === null) ? true : false;
+        function render(imgId,drawing,frameIndex,imgElement) {
+                var isAnimated = (frameIndex === undefined || frameIndex === null) ? true : false;
 
-		var palId = getRoomPal(state.room); // TODO : should NOT be hardcoded like this
+                var palId = getRoomPal(state.room); // TODO : should NOT be hardcoded like this
 
-		var hexPalette = [];
-		var roomColors = getPal(palId);
-		for (i in roomColors) {
-			var hexStr = rgbToHex(roomColors[i][0], roomColors[i][1], roomColors[i][2]).slice(1);
-			hexPalette.push(hexStr);
-		}
+                var hexPalette = [];
+                var roomColors = getPal(palId);
+                for (i in roomColors) {
+                        var hexStr = rgbToHex(roomColors[i][0], roomColors[i][1], roomColors[i][2]).slice(1);
+                        hexPalette.push(hexStr);
+                }
 
-		// bitsyLog(id, "editor");
+                // bitsyLog(id, "editor");
 
-		var drawingFrameData = [];
+                var drawingFrameData = [];
+                var frameCount = Math.max(1, drawing && drawing.animation ? drawing.animation.frameCount : 1);
+                var framesToRender = [];
 
-		if( isAnimated || frameIndex == 0 ) {
-			thumbnailDraw(drawing, drawingThumbnailCtx, 0, 0, 0 /*frameIndex*/);
-			drawingFrameData.push( drawingThumbnailCtx.getImageData(0,0,tilesize*scale,tilesize*scale).data );
-		}
-		if( isAnimated || frameIndex == 1 ) {
-			thumbnailDraw(drawing, drawingThumbnailCtx, 0, 0, 1 /*frameIndex*/);
-			drawingFrameData.push( drawingThumbnailCtx.getImageData(0,0,tilesize*scale,tilesize*scale).data );
-		}
+                if (isAnimated) {
+                        for (var i = 0; i < frameCount; i++) {
+                                framesToRender.push(i);
+                        }
+                }
+                else {
+                        var normalizedFrameIndex = frameIndex !== undefined && frameIndex !== null ? frameIndex : 0;
+                        normalizedFrameIndex = Math.max(0, Math.min(frameCount - 1, normalizedFrameIndex));
+                        framesToRender.push(normalizedFrameIndex);
+                }
 
-		// create encoder
-		var gifData = {
-			frames: drawingFrameData,
-			width: tilesize*scale,
-			height: tilesize*scale,
-			palette: hexPalette,
-			loops: 0,
-			delay: animationTime / 10 // TODO why divide by 10???
-		};
-		var encoder = new gif();
+                for (var frameIdx = 0; frameIdx < framesToRender.length; frameIdx++) {
+                        var frame = framesToRender[frameIdx];
+                        thumbnailDraw(drawing, drawingThumbnailCtx, 0, 0, frame);
+                        drawingFrameData.push( drawingThumbnailCtx.getImageData(0,0,tilesize*scale,tilesize*scale).data );
+                }
 
-		// cancel old encoder (if in progress already)
-		if( thumbnailRenderEncoders[imgId] != null )
-			thumbnailRenderEncoders[imgId].cancel();
-		thumbnailRenderEncoders[imgId] = encoder;
+                // create encoder
+                var gifData = {
+                        frames: drawingFrameData,
+                        width: tilesize*scale,
+                        height: tilesize*scale,
+                        palette: hexPalette,
+                        loops: 0,
+                        delay: animationTime / 10 // TODO why divide by 10???
+                };
+                var encoder = new gif();
 
-		// start encoding new GIF
-		if (imgElement === undefined || imgElement === null) {
-			imgElement = document.getElementById(imgId);
-		}
-		encoder.encode( gifData, createThumbnailRenderCallback(imgElement) );
-	}
+                // cancel old encoder (if in progress already)
+                if( thumbnailRenderEncoders[imgId] != null )
+                        thumbnailRenderEncoders[imgId].cancel();
+                thumbnailRenderEncoders[imgId] = encoder;
+
+                // start encoding new GIF
+                if (imgElement === undefined || imgElement === null) {
+                        imgElement = document.getElementById(imgId);
+                }
+                encoder.encode( gifData, createThumbnailRenderCallback(imgElement) );
+        }
 	this.Render = function(imgId,drawing,frameIndex,imgElement) {
 		render(imgId,drawing,frameIndex,imgElement);
 	};
