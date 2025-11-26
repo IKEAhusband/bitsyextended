@@ -216,7 +216,7 @@ function updateTileFavoriteButton() {
         button.setAttribute("aria-pressed", isFavorite);
 
         if (icon) {
-                iconUtils.LoadIcon(icon, "about");
+                iconUtils.LoadIcon(icon, "favorite");
         }
 
         if (label) {
