@@ -96,8 +96,9 @@ padding-bottom: var(--bitsy-space-xxs);
 display: flex;
 flex-wrap: nowrap;
 gap: var(--bitsy-space-s);
-flex: 0 0 auto;
-width: 100%;
+flex: 1 1 auto;
+min-width: 100%;
+width: auto;
 will-change: transform;
 }
 
