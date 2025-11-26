@@ -13,6 +13,9 @@ var curEditorInputMode = EditorInputMode.Mouse;
 /* EVENTS */
 var events = new EventManager();
 
+/* FAVORITES */
+var tileFavorites = [];
+
 // TODO: what the heck is this helper function for?
 function defParam(param,value) {
 	return (param == undefined || param == null) ? value : param;
@@ -156,15 +159,96 @@ function isColorDark(palId) {
 }
 
 function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
-	for (roomId in room) {
-		for (y in room[roomId].tilemap) {
-			for (x in room[roomId].tilemap[y]) {
-				if (room[roomId].tilemap[y][x] === findTile) {
-					room[roomId].tilemap[y][x] = replaceTile;
-				}
-			}
-		}
-	}
+        for (roomId in room) {
+                for (y in room[roomId].tilemap) {
+                        for (x in room[roomId].tilemap[y]) {
+                                if (room[roomId].tilemap[y][x] === findTile) {
+                                        room[roomId].tilemap[y][x] = replaceTile;
+                                }
+                        }
+                }
+        }
+}
+
+function loadTileFavorites() {
+        var storedFavorites = Store.get("tile_favorites", []);
+
+        if (!Array.isArray(storedFavorites)) {
+                storedFavorites = [];
+        }
+
+        tileFavorites = storedFavorites.filter(function(id) {
+                return typeof id === "string";
+        });
+}
+
+function saveTileFavorites() {
+        Store.set("tile_favorites", tileFavorites);
+}
+
+function isTileFavorite(tileId) {
+        return tileFavorites.indexOf(tileId) > -1;
+}
+
+function updateTileFavoriteButton() {
+        var button = document.getElementById("toggleTileFavoriteButton");
+        var icon = document.getElementById("tileFavoriteIcon");
+        var label = document.getElementById("tileFavoriteLabel");
+
+        if (!button) {
+                return;
+        }
+
+        var isTileMode = drawing && drawing.type === TileType.Tile;
+        if (!isTileMode) {
+                button.style.display = "none";
+                button.disabled = true;
+                button.setAttribute("aria-pressed", "false");
+                return;
+        }
+
+        var isFavorite = isTileFavorite(drawing.id);
+
+        button.style.display = "inline-block";
+        button.disabled = false;
+        button.setAttribute("aria-pressed", isFavorite);
+
+        if (icon) {
+                iconUtils.LoadIcon(icon, "about");
+        }
+
+        if (label) {
+                label.innerText = isFavorite ? "favorited" : "favorite";
+        }
+
+        button.title = isFavorite ? "Remove tile from favorites" : "Add tile to favorites";
+}
+
+function toggleTileFavorite() {
+        if (!drawing || drawing.type !== TileType.Tile) {
+                return;
+        }
+
+        var tileId = drawing.id;
+        var isFavorite = isTileFavorite(tileId);
+
+        if (isFavorite) {
+                tileFavorites = tileFavorites.filter(function(id) {
+                        return id !== tileId;
+                });
+        }
+        else {
+                tileFavorites.push(tileId);
+        }
+
+        saveTileFavorites();
+        updateTileFavoriteButton();
+
+        events.Raise("tile_favorite_toggled", {
+                tileId : tileId,
+                isFavorite : !isFavorite,
+                favorites : tileFavorites.slice(0)
+        });
 }
 
 /* MAKE DRAWING OBJECTS */
@@ -778,17 +862,19 @@ function start() {
 		iconUtils.LoadIconAnimated(elements[i]);
 	}
 
-	// localization
-	localization = new Localization(urlParameters["lang"]);
-	Store.init(function () {
-		// TODO: localize
-		window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
-	});
+        // localization
+        localization = new Localization(urlParameters["lang"]);
+        Store.init(function () {
+                // TODO: localize
+                window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
+        });
 
-	paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
-	paintTool.onReloadTile = function(){ reloadTile() };
-	paintTool.onReloadSprite = function(){ reloadSprite() };
-	paintTool.onReloadItem = function(){ reloadItem() };
+        loadTileFavorites();
+
+        paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
+        paintTool.onReloadTile = function(){ reloadTile() };
+        paintTool.onReloadSprite = function(){ reloadSprite() };
+        paintTool.onReloadItem = function(){ reloadItem() };
 
 	markerTool = new RoomMarkerTool(document.getElementById("markerCanvas1"), document.getElementById("markerCanvas2") );
 	bitsyLog("MARKER TOOL " + markerTool, "editor");
@@ -1279,8 +1365,8 @@ function updateAnimationUI() {
 }
 
 function reloadTile() {
-// animation UI
-updateAnimationUI();
+        // animation UI
+        updateAnimationUI();
 
         // wall UI
         updateWallCheckboxOnCurrentTile();
@@ -1289,6 +1375,8 @@ updateAnimationUI();
         setTransparentBgcVisibility(false);
 
         updateDrawingNameUI(true);
+
+        updateTileFavoriteButton();
 
         paintTool.updateCanvas();
 }
@@ -1335,8 +1423,8 @@ function setTransparentBgcVisibility(isVisible) {
 }
 
 function reloadSprite() {
-// animation UI
-updateAnimationUI();
+        // animation UI
+        updateAnimationUI();
 
         // dialog UI
         reloadDialogUI()
@@ -1347,6 +1435,8 @@ updateAnimationUI();
 
         updateDrawingNameUI( drawing.id != "A" );
 
+        updateTileFavoriteButton();
+
         // update paint canvas
         paintTool.updateCanvas();
 
@@ -1354,8 +1444,8 @@ updateAnimationUI();
 
 // TODO consolidate these drawing related methods
 function reloadItem() {
-// animation UI
-updateAnimationUI();
+        // animation UI
+        updateAnimationUI();
 
         // dialog UI
         reloadDialogUI()
@@ -1365,6 +1455,8 @@ updateAnimationUI();
         setTransparentBgcVisibility(true);
 
         updateDrawingNameUI(true);
+
+        updateTileFavoriteButton();
 
         // update paint canvas
         paintTool.updateCanvas();
