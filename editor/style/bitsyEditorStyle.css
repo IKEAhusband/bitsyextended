@@ -63,18 +63,23 @@ canvas {
 
 /* button */
 button {
-	background: var(--bitsy-color-accent-1);
-	padding: var(--bitsy-space-s);
-	margin: var(--bitsy-space-xs);
-	border-radius: var(--bitsy-space-s);
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
+        background: var(--bitsy-color-accent-1);
+        padding: var(--bitsy-space-s);
+        margin: var(--bitsy-space-xs);
+        border-radius: var(--bitsy-space-s);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+}
+
+button.bitsy-menu-label[aria-pressed="true"] {
+        background: var(--bitsy-color-main-2);
+        color: var(--bitsy-color-main-1);
 }
 
 button:active {
-	background: var(--bitsy-color-main-2);
-	color: var(--bitsy-color-main-1);
+        background: var(--bitsy-color-main-2);
+        color: var(--bitsy-color-main-1);
 }
 
 button:disabled {

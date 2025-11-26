@@ -216,11 +216,11 @@ function updateTileFavoriteButton() {
         button.setAttribute("aria-pressed", isFavorite);
 
         if (icon) {
-                iconUtils.LoadIcon(icon, "favorite");
+                iconUtils.LoadIcon(icon, "about");
         }
 
         if (label) {
-                label.innerText = isFavorite ? "favorited" : "favorite";
+                label.innerText = "favourite";
         }
 
         button.title = isFavorite ? "Remove tile from favorites" : "Add tile to favorites";
