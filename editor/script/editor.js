@@ -1674,38 +1674,18 @@ animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
 }
 
 function renderAnimationFrames(drawing) {
-        var framesContainer = document.getElementById("animationFrames");
+	var framesContainer = document.getElementById("animationFrames");
 
-        if (!framesContainer) {
-                return;
-        }
+	if (!framesContainer) {
+		return;
+	}
 
-        framesContainer.innerHTML = "";
+	framesContainer.innerHTML = "";
 
-        var frames = renderer.GetDrawingSource(drawing.drw) || [];
-        var addButton = document.getElementById("animationAddFrame");
-        var removeButton = document.getElementById("animationRemoveFrame");
-        var addIcon = document.getElementById("animationAddFrameIcon");
-        var removeIcon = document.getElementById("animationRemoveFrameIcon");
+	var frames = renderer.GetDrawingSource(drawing.drw) || [];
 
-        if (addIcon) {
-                iconUtils.LoadIcon(addIcon, "add");
-        }
-
-        if (removeIcon) {
-                iconUtils.LoadIcon(removeIcon, "delete");
-        }
-
-        if (addButton) {
-                addButton.disabled = !paintTool.isCurDrawingAnimated;
-        }
-
-        if (removeButton) {
-                removeButton.disabled = !paintTool.isCurDrawingAnimated || frames.length <= 1;
-        }
-
-        for (var i = 0; i < frames.length; i++) {
-                var frameThumbnail = document.createElement("div");
+	for (var i = 0; i < frames.length; i++) {
+		var frameThumbnail = document.createElement("div");
 		frameThumbnail.className = "bitsy-thumbnail";
 
 		if (i === paintTool.curDrawingFrameIndex) {
@@ -2617,9 +2597,9 @@ function cacheDrawingAnimation(drawing, sourceId) {
 	}
 
 function on_add_animation_frame() {
-        if (!paintTool.isCurDrawingAnimated) {
-        return;
-        }
+	if (!paintTool.isCurDrawingAnimated) {
+	return;
+	}
 
 	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
 
@@ -2633,53 +2613,21 @@ function on_add_animation_frame() {
 	drawingSource.push(newFrame);
 	renderer.SetDrawingSource(drawing.drw, drawingSource);
 
-        paintTool.curDrawingFrameIndex = drawingSource.length - 1;
+	var drawingData = getCurrentDrawingData();
 
-        var drawingData = getCurrentDrawingData();
+	if (drawingData) {
+	setDrawingAnimationMetadata(drawingData, drawingSource.length);
+	}
 
-        if (drawingData) {
-        setDrawingAnimationMetadata(drawingData, drawingSource.length);
-        drawingData.animation.frameIndex = paintTool.curDrawingFrameIndex;
-        }
+	paintTool.curDrawingFrameIndex = drawingSource.length - 1;
 
 	renderer.ClearCache();
 	refreshGameData();
 	paintTool.reloadDrawing();
 	resetAllAnimations();
 
-        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
-        }
-
-function on_remove_animation_frame() {
-        if (!paintTool.isCurDrawingAnimated) {
-        return;
-        }
-
-        var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
-
-        if (drawingSource.length <= 1) {
-        return;
-        }
-
-        drawingSource.splice(paintTool.curDrawingFrameIndex, 1);
-        renderer.SetDrawingSource(drawing.drw, drawingSource);
-
-        paintTool.curDrawingFrameIndex = Math.max(0, Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1));
-
-        var drawingData = getCurrentDrawingData();
-
-        if (drawingData) {
-        setDrawingAnimationMetadata(drawingData, drawingSource.length);
-        drawingData.animation.frameIndex = paintTool.curDrawingFrameIndex;
-        }
-
-        renderer.ClearCache();
-        refreshGameData();
-        paintTool.reloadDrawing();
-        resetAllAnimations();
-
-        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
-        }
+	scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+	}
 
 function selectAnimationFrame(frameIndex) {
 	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];

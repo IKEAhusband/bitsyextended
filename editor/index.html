@@ -562,18 +562,14 @@
 <button id="animationFramePrev" class="bitsy-thumbnail animation-frame-nav" onclick="onNavigateAnimationFrame(-1);">
 <span class="bitsy_icon">chevron_left</span>
 </button>
-<div id="animationFrameListWrapper">
-<div id="animationFrameActions">
-<button id="animationAddFrame" class="bitsy-thumbnail animation-frame-action" onclick="on_add_animation_frame();" title="add frame" aria-label="add frame">
-<span class="bitsy_icon" id="animationAddFrameIcon">add</span>
-</button>
-<button id="animationRemoveFrame" class="bitsy-thumbnail animation-frame-action" onclick="on_remove_animation_frame();" title="delete frame" aria-label="delete frame">
-<span class="bitsy_icon" id="animationRemoveFrameIcon">delete</span>
-</button>
-</div>
 <div id="animationFrameList" onwheel="onAnimationFrameWheel(event);">
 <div id="animationFrames"></div>
+<button id="animationAddFrame" class="bitsy-thumbnail animation-add-frame" onclick="on_add_animation_frame();">
+<div class="bitsy-thumbnail-image-container">
+<span class="bitsy_icon">add</span>
 </div>
+<label class="bitsy-menu-label">+</label>
+</button>
 </div>
 <button id="animationFrameNext" class="bitsy-thumbnail animation-frame-nav" onclick="onNavigateAnimationFrame(1);">
 <span class="bitsy_icon">chevron_right</span>
@@ -581,7 +577,7 @@
 </div>
 </div>
 </div>
-                                                </div>
+						</div>
 
 						<div id="newPaintMenu" class="bitsy-menu"></div>
 					</div>

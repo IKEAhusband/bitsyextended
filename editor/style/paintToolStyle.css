@@ -22,25 +22,17 @@
 
 #animationFrameStrip {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: var(--bitsy-space-s);
-}
-
-#animationFrameListWrapper {
-        position: relative;
-        flex: 1;
-        display: flex;
-        min-width: 0;
 }
 
 #animationFrameList {
-        display: flex;
-        align-items: stretch;
-        flex: 1;
-        min-width: 0;
-        overflow-x: auto;
-        gap: var(--bitsy-space-s);
-        padding: calc(var(--bitsy-space-xs) + var(--bitsy-space-m)) var(--bitsy-space-xs) var(--bitsy-space-xxs);
+display: flex;
+align-items: stretch;
+flex: 1;
+overflow-x: auto;
+gap: var(--bitsy-space-s);
+padding-bottom: var(--bitsy-space-xxs);
 }
 
 #animationFrames {
@@ -49,28 +41,9 @@
         gap: var(--bitsy-space-s);
 }
 
-#animationFrames .bitsy-thumbnail {
+#animationFrames .bitsy-thumbnail,
+#animationAddFrame {
         flex: 0 0 auto;
-}
-
-#animationFrameActions {
-        position: absolute;
-        top: var(--bitsy-space-xxs);
-        right: var(--bitsy-space-xxs);
-        display: flex;
-        gap: var(--bitsy-space-xxs);
-}
-
-.animation-frame-action {
-        min-width: 2em;
-        height: 2em;
-        padding: 0;
-        justify-content: center;
-        align-items: center;
-}
-
-.animation-frame-action .bitsy_icon {
-        font-size: 1em;
 }
 
 .animation-frame-nav {
@@ -82,4 +55,16 @@
 
 .animation-frame-nav .bitsy_icon {
         font-size: 1.2em;
+}
+
+.animation-add-frame {
+        justify-content: center;
+        align-items: center;
+}
+
+.animation-add-frame .bitsy-thumbnail-image-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--bitsy-color-bg-2);
 }
