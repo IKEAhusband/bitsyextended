@@ -1869,7 +1869,14 @@ function onAnimationFrameResize() {
 window.addEventListener("resize", onAnimationFrameResize);
 
 function renderAnimationPreview(drawing) {
-        renderAnimationThumbnail("animationThumbnailPreview", drawing, paintTool.curDrawingFrameIndex);
+        var previewId = "animationThumbnailPreview";
+        var cacheEntry = animationThumbnailRenderer.GetCacheEntry(previewId);
+
+        if (cacheEntry) {
+                cacheEntry.outOfDate = true;
+        }
+
+        renderAnimationThumbnail(previewId, drawing);
         scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
 }
 
