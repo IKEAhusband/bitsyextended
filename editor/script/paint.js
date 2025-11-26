@@ -179,11 +179,13 @@ function PaintTool(canvas, menuElement) {
 		return getDrawingFrameData(drawing, frameIndex);
 	}
 
-	// todo: assumes 2 frames
-	function curDrawingAltFrameData() {
-		var frameIndex = (self.curDrawingFrameIndex === 0 ? 1 : 0);
-		return getDrawingFrameData(drawing, frameIndex);
-	}
+// todo: assumes 2 frames
+function curDrawingAltFrameData() {
+var frames = getDrawingImageSource(drawing);
+var frameCount = frames.length;
+var frameIndex = (self.curDrawingFrameIndex + 1) % frameCount;
+return getDrawingFrameData(drawing, frameIndex);
+}
 
 	// TODO : rename?
 	function updateDrawingData() {
