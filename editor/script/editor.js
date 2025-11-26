@@ -1690,10 +1690,46 @@ function renderAnimationThumbnail(imgId, drawing, frameIndex) {
 animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
 }
 
+var animationFrameStripOffset = 0;
+
+function getAnimationFrameUiElements() {
+	var framesContainer = document.getElementById("animationFrames");
+	var frameList = document.getElementById("animationFrameList");
+	var slider = document.getElementById("animationFrameSlider");
+
+	if (!framesContainer || !frameList) {
+		return null;
+	}
+
+	return {
+		framesContainer: framesContainer,
+		frameList: frameList,
+		slider: slider,
+	};
+}
+
+function getAnimationFrameScrollableWidth(ui) {
+	return Math.max(0, ui.framesContainer.scrollWidth - ui.frameList.clientWidth);
+}
+
+function setAnimationFrameStripOffset(offset) {
+	var ui = getAnimationFrameUiElements();
+
+	if (!ui) {
+		return 0;
+	}
+
+	var scrollableWidth = getAnimationFrameScrollableWidth(ui);
+	var clampedOffset = Math.max(0, Math.min(scrollableWidth, offset));
+
+	animationFrameStripOffset = clampedOffset;
+	ui.framesContainer.style.transform = "translateX(" + (-clampedOffset) + "px)";
+
+	return clampedOffset;
+}
+
 function renderAnimationFrames(drawing) {
 	var frames = renderer.GetDrawingSource(drawing.drw) || [];
-
-	updateAnimationFrameSlider(frames.length);
 
 	var framesContainer = document.getElementById("animationFrames");
 
@@ -1735,36 +1771,59 @@ function renderAnimationFrames(drawing) {
 		framesContainer.appendChild(frameThumbnail);
 
 		renderAnimationThumbnail(imgId, drawing, i);
-}
+	}
+
+	updateAnimationFrameSlider(frames.length);
 }
 
 function updateAnimationFrameSlider(frameCount) {
-	var slider = document.getElementById("animationFrameSlider");
+	var ui = getAnimationFrameUiElements();
 
-	if (!slider) {
+	if (!ui || !ui.slider) {
 		return;
 	}
 
 	var maxIndex = Math.max(0, frameCount - 1);
-	slider.min = 0;
-	slider.max = maxIndex;
-	slider.step = 1;
-	slider.value = Math.min(maxIndex, paintTool.curDrawingFrameIndex);
-	slider.disabled = frameCount <= 1;
+	var scrollableWidth = getAnimationFrameScrollableWidth(ui);
+	var sliderValue = Math.min(maxIndex, paintTool.curDrawingFrameIndex);
+
+	ui.slider.min = 0;
+	ui.slider.max = maxIndex;
+	ui.slider.step = 1;
+	ui.slider.value = sliderValue;
+	ui.slider.disabled = frameCount <= 1;
+
+	var offsetFromSlider = maxIndex > 0 ? (sliderValue / maxIndex) * scrollableWidth : 0;
+	setAnimationFrameStripOffset(offsetFromSlider);
 }
 
 function scrollAnimationFrameIntoView(frameIndex) {
-	var framesContainer = document.getElementById("animationFrames");
+	var ui = getAnimationFrameUiElements();
 
-	if (!framesContainer) {
+	if (!ui) {
 		return;
 	}
 
-	var selectedFrame = framesContainer.querySelector('[data-frame-index=\"' + frameIndex + '\"]');
+	var selectedFrame = ui.framesContainer.querySelector('[data-frame-index=\"' + frameIndex + '\"]');
+	var scrollableWidth = getAnimationFrameScrollableWidth(ui);
+	var maxIndex = Math.max(0, ui.framesContainer.children.length - 1);
+	var targetOffset = maxIndex > 0 ? (frameIndex / maxIndex) * scrollableWidth : 0;
 
-	if (selectedFrame && selectedFrame.scrollIntoView) {
-		selectedFrame.scrollIntoView({ block: "nearest", inline: "nearest" });
+	if (selectedFrame) {
+		var frameLeft = selectedFrame.offsetLeft;
+		var frameRight = frameLeft + selectedFrame.offsetWidth;
+		var viewLeft = targetOffset;
+		var viewRight = targetOffset + ui.frameList.clientWidth;
+
+		if (frameLeft < viewLeft) {
+			targetOffset = frameLeft;
+		}
+		else if (frameRight > viewRight) {
+			targetOffset = frameRight - ui.frameList.clientWidth;
+		}
 	}
+
+	setAnimationFrameStripOffset(targetOffset);
 }
 
 function renderAnimationPreview(drawing) {
