@@ -1,14 +1,28 @@
 #animationOuter {
         margin-top: var(--bitsy-space-s);
         margin-bottom: var(--bitsy-space-m);
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--bitsy-space-s);
 }
 
 #animationHeader {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         padding: 0 var(--bitsy-space-s);
         margin-bottom: var(--bitsy-space-s);
         gap: var(--bitsy-space-s);
+}
+
+#animationActions {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--bitsy-space-s);
+}
+
+#animationOuter:not(.animation-enabled) #animationActions {
+        display: none;
 }
 
 #animationAddFrame,

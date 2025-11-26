@@ -1255,15 +1255,26 @@ function updateAnimationUI() {
 		paintTool.curDrawingFrameIndex = Math.max(0, frameCount - 1);
 	}
 
+	var animationOuter = document.getElementById("animationOuter");
+
 	if (drawingData.animation.isAnimated) {
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
+
+		if (animationOuter) {
+			animationOuter.classList.add("animation-enabled");
+		}
+
 		renderAnimationPreview(drawing);
 	}
 	else {
 		paintTool.curDrawingFrameIndex = 0;
 		document.getElementById("animation").setAttribute("style","display:none;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
+
+		if (animationOuter) {
+			animationOuter.classList.remove("animation-enabled");
+		}
 	}
 }
 
@@ -2376,6 +2387,12 @@ function on_toggle_animated() {
 		}
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
+
+		var animationOuter = document.getElementById("animationOuter");
+
+		if (animationOuter) {
+			animationOuter.classList.add("animation-enabled");
+		}
 		bitsyLog(drawing.id, "editor");
 		renderAnimationPreview(drawing);
 	}
@@ -2392,6 +2409,12 @@ function on_toggle_animated() {
 		}
 		document.getElementById("animation").setAttribute("style","display:none;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
+
+		var animationOuter = document.getElementById("animationOuter");
+
+		if (animationOuter) {
+			animationOuter.classList.remove("animation-enabled");
+		}
 	}
 }
 
