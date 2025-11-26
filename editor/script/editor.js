@@ -1690,8 +1690,7 @@ function renderAnimationThumbnail(imgId, drawing, frameIndex) {
 animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
 }
 
-var animationFrameWindowStartIndex = 0;
-var animationFrameWindowSize = 1;
+var animationFrameStripOffset = 0;
 
 function getAnimationFrameUiElements() {
 	var framesContainer = document.getElementById("animationFrames");
@@ -1709,46 +1708,30 @@ function getAnimationFrameUiElements() {
 	};
 }
 
-function calculateAnimationFrameWindow(ui, frameCount) {
-        if (!ui || frameCount <= 0) {
-                return { windowSize: 0, maxStartIndex: 0 };
-        }
-
-        var firstFrame = ui.framesContainer.children[0];
-        var containerStyle = window.getComputedStyle(ui.framesContainer);
-        var gap = parseFloat(containerStyle.columnGap || containerStyle.gap || 0) || 0;
-        var frameWidth = firstFrame ? firstFrame.getBoundingClientRect().width : 0;
-        var availableWidth = ui.frameList.clientWidth;
-        var totalFrameWidth = frameWidth + gap;
-        var windowSize = totalFrameWidth > 0 ? Math.floor((availableWidth + gap) / totalFrameWidth) : 1;
-
-        windowSize = Math.max(1, Math.min(frameCount, windowSize));
-
-        var maxStartIndex = Math.max(0, frameCount - windowSize);
-
-        return { windowSize: windowSize, maxStartIndex: maxStartIndex };
+function getAnimationFrameScrollableWidth(ui) {
+	return Math.max(0, ui.framesContainer.scrollWidth - ui.frameList.clientWidth);
 }
 
-function updateVisibleAnimationFrames(windowSize) {
-        var ui = getAnimationFrameUiElements();
+function setAnimationFrameStripOffset(offset) {
+	var ui = getAnimationFrameUiElements();
 
-        if (!ui) {
-                return;
-        }
+	if (!ui) {
+		return 0;
+	}
 
-        var windowEnd = animationFrameWindowStartIndex + windowSize;
+	var scrollableWidth = getAnimationFrameScrollableWidth(ui);
+	var clampedOffset = Math.max(0, Math.min(scrollableWidth, offset));
 
-        for (var i = 0; i < ui.framesContainer.children.length; i++) {
-                var frame = ui.framesContainer.children[i];
-                var isVisible = i >= animationFrameWindowStartIndex && i < windowEnd;
-                frame.style.display = isVisible ? "" : "none";
-        }
+	animationFrameStripOffset = clampedOffset;
+	ui.framesContainer.style.transform = "translateX(" + (-clampedOffset) + "px)";
+
+	return clampedOffset;
 }
 
 function renderAnimationFrames(drawing) {
-        var frames = renderer.GetDrawingSource(drawing.drw) || [];
+	var frames = renderer.GetDrawingSource(drawing.drw) || [];
 
-        var framesContainer = document.getElementById("animationFrames");
+	var framesContainer = document.getElementById("animationFrames");
 
 	if (!framesContainer) {
 		return;
@@ -1785,76 +1768,62 @@ function renderAnimationFrames(drawing) {
 		label.innerText = "frame " + (i + 1);
 		frameThumbnail.appendChild(label);
 
-                framesContainer.appendChild(frameThumbnail);
+		framesContainer.appendChild(frameThumbnail);
 
-                renderAnimationThumbnail(imgId, drawing, i);
-        }
+		renderAnimationThumbnail(imgId, drawing, i);
+	}
 
-        updateAnimationFrameSlider(frames.length);
+	updateAnimationFrameSlider(frames.length);
 }
 
 function updateAnimationFrameSlider(frameCount) {
-        var ui = getAnimationFrameUiElements();
+	var ui = getAnimationFrameUiElements();
 
-        if (!ui || !ui.slider) {
-                return;
-        }
+	if (!ui || !ui.slider) {
+		return;
+	}
 
-        var layout = calculateAnimationFrameWindow(ui, frameCount);
+	var maxIndex = Math.max(0, frameCount - 1);
+	var scrollableWidth = getAnimationFrameScrollableWidth(ui);
+	var sliderValue = Math.min(maxIndex, paintTool.curDrawingFrameIndex);
 
-        animationFrameWindowSize = layout.windowSize;
-        animationFrameWindowStartIndex = Math.max(0, Math.min(animationFrameWindowStartIndex, layout.maxStartIndex));
+	ui.slider.min = 0;
+	ui.slider.max = maxIndex;
+	ui.slider.step = 1;
+	ui.slider.value = sliderValue;
+	ui.slider.disabled = frameCount <= 1;
 
-        ui.slider.min = 0;
-        ui.slider.max = layout.maxStartIndex;
-        ui.slider.step = 1;
-        ui.slider.value = animationFrameWindowStartIndex;
-        ui.slider.disabled = layout.maxStartIndex <= 0;
-
-        updateVisibleAnimationFrames(animationFrameWindowSize);
+	var offsetFromSlider = maxIndex > 0 ? (sliderValue / maxIndex) * scrollableWidth : 0;
+	setAnimationFrameStripOffset(offsetFromSlider);
 }
-
-function refreshAnimationFrameWindow() {
-        var ui = getAnimationFrameUiElements();
-
-        if (!ui || !drawing) {
-                return;
-        }
-
-        var frames = renderer.GetDrawingSource(drawing.drw) || [];
-
-        updateAnimationFrameSlider(frames.length);
-        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
-}
-
-window.addEventListener("resize", refreshAnimationFrameWindow);
 
 function scrollAnimationFrameIntoView(frameIndex) {
-        var ui = getAnimationFrameUiElements();
+	var ui = getAnimationFrameUiElements();
 
-        if (!ui) {
-                return;
-        }
+	if (!ui) {
+		return;
+	}
 
-        var frameCount = ui.framesContainer.children.length;
-        var layout = calculateAnimationFrameWindow(ui, frameCount);
+	var selectedFrame = ui.framesContainer.querySelector('[data-frame-index=\"' + frameIndex + '\"]');
+	var scrollableWidth = getAnimationFrameScrollableWidth(ui);
+	var maxIndex = Math.max(0, ui.framesContainer.children.length - 1);
+	var targetOffset = maxIndex > 0 ? (frameIndex / maxIndex) * scrollableWidth : 0;
 
-        animationFrameWindowSize = layout.windowSize;
+	if (selectedFrame) {
+		var frameLeft = selectedFrame.offsetLeft;
+		var frameRight = frameLeft + selectedFrame.offsetWidth;
+		var viewLeft = targetOffset;
+		var viewRight = targetOffset + ui.frameList.clientWidth;
 
-        if (frameIndex < animationFrameWindowStartIndex) {
-                animationFrameWindowStartIndex = frameIndex;
-        }
-        else if (frameIndex >= animationFrameWindowStartIndex + animationFrameWindowSize) {
-                animationFrameWindowStartIndex = frameIndex - animationFrameWindowSize + 1;
-        }
+		if (frameLeft < viewLeft) {
+			targetOffset = frameLeft;
+		}
+		else if (frameRight > viewRight) {
+			targetOffset = frameRight - ui.frameList.clientWidth;
+		}
+	}
 
-        animationFrameWindowStartIndex = Math.max(0, Math.min(animationFrameWindowStartIndex, layout.maxStartIndex));
-
-        if (ui.slider) {
-                ui.slider.value = animationFrameWindowStartIndex;
-        }
-
-        updateVisibleAnimationFrames(animationFrameWindowSize);
+	setAnimationFrameStripOffset(targetOffset);
 }
 
 function renderAnimationPreview(drawing) {
@@ -2842,25 +2811,24 @@ function onAnimationFrameWheel(e) {
 }
 
 function onAnimationFrameSliderChange(value) {
-        var frames = renderer.GetDrawingSource(drawing.drw) || [];
+	var frames = renderer.GetDrawingSource(drawing.drw) || [];
 
-        if (frames.length <= 0) {
-                return;
-        }
+	if (frames.length <= 0) {
+		return;
+	}
 
-        var ui = getAnimationFrameUiElements();
-        var layout = calculateAnimationFrameWindow(ui, frames.length);
+	var maxIndex = frames.length - 1;
+	var frameIndex = Math.max(0, Math.min(maxIndex, parseInt(value, 10) || 0));
 
-        animationFrameWindowSize = layout.windowSize;
-        animationFrameWindowStartIndex = Math.max(0, Math.min(layout.maxStartIndex, parseInt(value, 10) || 0));
+	if (frameIndex === paintTool.curDrawingFrameIndex) {
+		scrollAnimationFrameIntoView(frameIndex);
+		return;
+	}
 
-        if (ui && ui.slider) {
-                ui.slider.value = animationFrameWindowStartIndex;
-                ui.slider.max = layout.maxStartIndex;
-                ui.slider.disabled = layout.maxStartIndex <= 0;
-        }
+	paintTool.curDrawingFrameIndex = frameIndex;
 
-        updateVisibleAnimationFrames(animationFrameWindowSize);
+	renderAnimationPreview(drawing);
+	paintTool.reloadDrawing();
 }
 
 function on_paint_frame1() {
