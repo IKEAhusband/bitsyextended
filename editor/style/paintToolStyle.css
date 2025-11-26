@@ -66,19 +66,20 @@
 }
 
 #animationFrameStrip {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: var(--bitsy-space-s);
+display: flex;
+flex-direction: column;
+align-items: stretch;
+gap: var(--bitsy-space-s);
 }
 
 #animationFrameList {
-	display: flex;
-	align-items: stretch;
-	flex: 1;
-	overflow: hidden;
-	gap: var(--bitsy-space-s);
-	padding-bottom: var(--bitsy-space-xxs);
+display: flex;
+align-items: stretch;
+flex: 1;
+width: 100%;
+overflow-x: hidden;
+gap: var(--bitsy-space-s);
+padding-bottom: var(--bitsy-space-xxs);
 }
 
 #animationFrameSliderContainer {
@@ -92,10 +93,12 @@
 }
 
 #animationFrames {
-	display: flex;
-	flex-wrap: nowrap;
-	gap: var(--bitsy-space-s);
-	will-change: transform;
+display: flex;
+flex-wrap: nowrap;
+gap: var(--bitsy-space-s);
+flex: 0 0 auto;
+width: 100%;
+will-change: transform;
 }
 
 #animationFrames .bitsy-thumbnail {
