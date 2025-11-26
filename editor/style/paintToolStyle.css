@@ -8,9 +8,11 @@
         align-items: center;
         padding: 0 var(--bitsy-space-s);
         margin-bottom: var(--bitsy-space-s);
+        gap: var(--bitsy-space-s);
 }
 
-#animationAddFrame {
+#animationAddFrame,
+#animationDeleteFrame {
         display: inline-flex;
         align-items: center;
         gap: var(--bitsy-space-xxs);
@@ -18,12 +20,17 @@
         margin: 0;
 }
 
-#animationAddFrame .bitsy_icon {
+#animationAddFrame .bitsy_icon,
+#animationDeleteFrame .bitsy_icon {
         font-size: 1em;
         margin-right: 0;
 }
 
 .animation-add-frame-label {
+        font-size: 0.9em;
+}
+
+.animation-delete-frame-label {
         font-size: 0.9em;
 }
 
@@ -51,12 +58,12 @@
 }
 
 #animationFrameList {
-display: flex;
-align-items: stretch;
-flex: 1;
-overflow-x: auto;
-gap: var(--bitsy-space-s);
-padding-bottom: var(--bitsy-space-xxs);
+        display: flex;
+        align-items: stretch;
+        flex: 1;
+        overflow-x: auto;
+        gap: var(--bitsy-space-s);
+        padding-bottom: var(--bitsy-space-xxs);
 }
 
 #animationFrames {

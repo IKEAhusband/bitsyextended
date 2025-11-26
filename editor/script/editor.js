@@ -1233,13 +1233,19 @@ function updateAnimationUI() {
 		return;
 	}
 
-	var frames = renderer.GetDrawingSource(drawing.drw) || [];
-	var frameCount = frames.length;
+        var frames = renderer.GetDrawingSource(drawing.drw) || [];
+        var frameCount = frames.length;
 
-	drawingData.animation.frameCount = frameCount;
-	drawingData.animation.isAnimated = frameCount > 1;
-	paintTool.isCurDrawingAnimated = drawingData.animation.isAnimated;
-	document.getElementById("animatedCheckbox").checked = drawingData.animation.isAnimated;
+        var deleteFrameButton = document.getElementById("animationDeleteFrame");
+
+        if (deleteFrameButton) {
+                deleteFrameButton.disabled = frameCount <= 1;
+        }
+
+        drawingData.animation.frameCount = frameCount;
+        drawingData.animation.isAnimated = frameCount > 1;
+        paintTool.isCurDrawingAnimated = drawingData.animation.isAnimated;
+        document.getElementById("animatedCheckbox").checked = drawingData.animation.isAnimated;
 
 	if (frameCount <= 0) {
 		return;
@@ -2597,37 +2603,69 @@ function cacheDrawingAnimation(drawing, sourceId) {
 	}
 
 function on_add_animation_frame() {
-	if (!paintTool.isCurDrawingAnimated) {
-	return;
-	}
+        if (!paintTool.isCurDrawingAnimated) {
+                return;
+        }
 
-	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
+        var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
 
-	if (drawingSource.length <= 0) {
-	return;
-	}
+        if (drawingSource.length <= 0) {
+                return;
+        }
 
-	var baseFrame = drawingSource[Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1)] || drawingSource[0];
-	var newFrame = copyFrameData(baseFrame);
+        var baseFrame = drawingSource[Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1)] || drawingSource[0];
+        var newFrame = copyFrameData(baseFrame);
 
-	drawingSource.push(newFrame);
-	renderer.SetDrawingSource(drawing.drw, drawingSource);
+        drawingSource.push(newFrame);
+        renderer.SetDrawingSource(drawing.drw, drawingSource);
 
-	var drawingData = getCurrentDrawingData();
+        var drawingData = getCurrentDrawingData();
 
-	if (drawingData) {
-	setDrawingAnimationMetadata(drawingData, drawingSource.length);
-	}
+        if (drawingData) {
+                setDrawingAnimationMetadata(drawingData, drawingSource.length);
+        }
 
-	paintTool.curDrawingFrameIndex = drawingSource.length - 1;
+        paintTool.curDrawingFrameIndex = drawingSource.length - 1;
 
-	renderer.ClearCache();
-	refreshGameData();
-	paintTool.reloadDrawing();
-	resetAllAnimations();
+        renderer.ClearCache();
+        refreshGameData();
+        paintTool.reloadDrawing();
+        resetAllAnimations();
 
-	scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
-	}
+        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+}
+
+function on_delete_animation_frame() {
+        if (!paintTool.isCurDrawingAnimated) {
+                return;
+        }
+
+        var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
+
+        if (drawingSource.length <= 1) {
+                return;
+        }
+
+        var frameIndex = Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1);
+
+        drawingSource.splice(frameIndex, 1);
+        renderer.SetDrawingSource(drawing.drw, drawingSource);
+
+        var drawingData = getCurrentDrawingData();
+
+        if (drawingData) {
+                setDrawingAnimationMetadata(drawingData, drawingSource.length);
+        }
+
+        paintTool.curDrawingFrameIndex = Math.max(0, Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1));
+
+        renderer.ClearCache();
+        refreshGameData();
+        paintTool.reloadDrawing();
+        resetAllAnimations();
+
+        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+}
 
 function selectAnimationFrame(frameIndex) {
 	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
