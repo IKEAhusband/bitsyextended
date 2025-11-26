@@ -1738,18 +1738,28 @@ function calculateAnimationFrameWindowSize(ui, frameCount) {
                 return 0;
         }
 
-        var frameListWidth = ui.frameList.clientWidth;
+        var frameListStyle = getComputedStyle(ui.frameList);
+        var paddingLeft = parseFloat(frameListStyle.paddingLeft || "0");
+        var paddingRight = parseFloat(frameListStyle.paddingRight || "0");
+        var frameListWidth = Math.max(0, ui.frameList.getBoundingClientRect().width - paddingLeft - paddingRight);
         var thumbnailWidth = getAnimationFrameThumbnailWidth(ui);
         var gap = getAnimationFrameGap(ui);
         var effectiveWidth = thumbnailWidth + gap;
 
         if (frameListWidth <= 0 || effectiveWidth <= 0) {
-                return Math.max(1, frameCount);
+                return 1;
         }
 
         var windowSize = Math.floor((frameListWidth + gap) / effectiveWidth);
 
         return Math.max(1, Math.min(frameCount, windowSize));
+}
+
+function clampAnimationFrameStartIndex(frameCount, windowSize) {
+        var maxStartIndex = Math.max(0, frameCount - windowSize);
+        animationFrameStartIndex = Math.max(0, Math.min(animationFrameStartIndex, maxStartIndex));
+
+        return maxStartIndex;
 }
 
 function renderAnimationFrames(drawing, options) {
@@ -1761,8 +1771,7 @@ function renderAnimationFrames(drawing, options) {
         }
 
         var windowSize = options && options.windowSize !== undefined ? options.windowSize : calculateAnimationFrameWindowSize(ui, frames.length);
-        var maxStartIndex = Math.max(0, frames.length - windowSize);
-        animationFrameStartIndex = Math.max(0, Math.min(animationFrameStartIndex, maxStartIndex));
+        var maxStartIndex = clampAnimationFrameStartIndex(frames.length, windowSize);
 
         ui.framesContainer.innerHTML = "";
         var visibleFrames = frames.slice(animationFrameStartIndex, animationFrameStartIndex + windowSize);
@@ -1802,23 +1811,23 @@ function renderAnimationFrames(drawing, options) {
                 renderAnimationThumbnail(imgId, drawing, frameIndex);
         }
 
-        updateAnimationFrameSlider(frames.length, windowSize);
+        updateAnimationFrameSlider(frames.length, windowSize, maxStartIndex);
 }
 
-function updateAnimationFrameSlider(frameCount, windowSize) {
+function updateAnimationFrameSlider(frameCount, windowSize, maxStartIndex) {
         var ui = getAnimationFrameUiElements();
 
         if (!ui || !ui.slider) {
                 return;
         }
 
-        var maxIndex = Math.max(0, frameCount - windowSize);
-        var sliderValue = Math.max(0, Math.min(animationFrameStartIndex, maxIndex));
+        var maxIndex = maxStartIndex !== undefined ? maxStartIndex : clampAnimationFrameStartIndex(frameCount, windowSize);
+        animationFrameStartIndex = Math.max(0, Math.min(animationFrameStartIndex, maxIndex));
 
         ui.slider.min = 0;
         ui.slider.max = maxIndex;
         ui.slider.step = 1;
-        ui.slider.value = sliderValue;
+        ui.slider.value = animationFrameStartIndex;
         ui.slider.disabled = frameCount <= windowSize;
 }
 
