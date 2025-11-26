@@ -501,8 +501,29 @@ details.bitsy-menu-group summary {
 }
 
 .bitsy-thumbnail .bitsy-menu-label {
-	overflow: hidden;
-	white-space: nowrap;
+overflow: hidden;
+white-space: nowrap;
+}
+
+.favorite-tiles-grid {
+display: flex;
+flex-wrap: wrap;
+align-items: flex-start;
+margin: calc(-1 * var(--bitsy-space-s));
+}
+
+.favorite-tiles-grid .bitsy-thumbnail {
+margin: var(--bitsy-space-s);
+}
+
+#favoriteTilesEmptyState {
+width: 100%;
+display: none;
+}
+
+#favoriteTilesEmptyState span {
+white-space: pre-wrap;
+word-wrap: break-word;
 }
 
 /* app root container */
