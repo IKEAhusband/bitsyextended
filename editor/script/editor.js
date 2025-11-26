@@ -1324,7 +1324,7 @@ function updateTransparentBgcCheckboxOnCurrentDrawing() {
         }
 
         checkbox.checked = isTransparent;
-        iconUtils.LoadIcon(document.getElementById("transparentBgcCheckboxIcon"), isTransparent ? "check_box" : "check_box_outline_blank");
+        iconUtils.LoadIcon(document.getElementById("transparentBgcCheckboxIcon"), isTransparent ? "wall_on" : "wall_off");
 }
 
 function setTransparentBgcVisibility(isVisible) {
@@ -2165,7 +2165,7 @@ function on_toggle_transparent_bgc(e) {
 }
 
 function toggleTransparentBgcUI(checked) {
-        iconUtils.LoadIcon(document.getElementById("transparentBgcCheckboxIcon"), checked ? "check_box" : "check_box_outline_blank");
+        iconUtils.LoadIcon(document.getElementById("transparentBgcCheckboxIcon"), checked ? "wall_on" : "wall_off");
 }
 
 function hideAbout() {
