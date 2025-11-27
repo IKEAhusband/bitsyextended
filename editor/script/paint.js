@@ -140,17 +140,13 @@ function PaintTool(canvas, menuElement) {
 		var palId = room[selectedRoomId].pal;
 		var palColors = getPal(palId);
 
-		//background
-		ctx.fillStyle = "rgb(" + palColors[0][0] + "," + palColors[0][1] + "," + palColors[0][2] + ")";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+                var backgroundColorIndex = Math.min(palColors.length - 1, Math.max(0, drawing.bgc || 0));
+                var paintColorIndex = Math.min(palColors.length - 1, Math.max(0, drawing.col || 0));
 
-		//pixel color
-		if (drawing.type === TileType.Tile) {
-			ctx.fillStyle = "rgb(" + palColors[1][0] + "," + palColors[1][1] + "," + palColors[1][2] + ")";
-		}
-		else if (drawing.type === TileType.Sprite || drawing.type === TileType.Avatar || drawing.type === TileType.Item) {
-			ctx.fillStyle = "rgb(" + palColors[2][0] + "," + palColors[2][1] + "," + palColors[2][2] + ")";
-		}
+                ctx.fillStyle = "rgb(" + palColors[backgroundColorIndex][0] + "," + palColors[backgroundColorIndex][1] + "," + palColors[backgroundColorIndex][2] + ")";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = "rgb(" + palColors[paintColorIndex][0] + "," + palColors[paintColorIndex][1] + "," + palColors[paintColorIndex][2] + ")";
 
 		//draw pixels
 		for (var x = 0; x < tilesize; x++) {
