@@ -126,11 +126,11 @@ function FindTool(options) {
 				showPanel("paintPanel", "findPanel");
 			},
 			renderer: itemThumbnailRenderer,
-		},
-		{
-			id: "ROOM",
-			icon: "room",
-			getIdList: function() { return sortedRoomIdList(); },
+		                },
+                {
+                        id: "ROOM",
+                        icon: "room",
+                        getIdList: function() { return sortedRoomIdList(); },
 			getCategoryName: function() {
 				return localization.GetStringOrFallback("room_label", "room");
 			},
