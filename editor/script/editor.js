@@ -381,16 +381,19 @@ function getValidFavoriteItems() {
 function createFavoriteTileControl(tileId) {
         var favoriteName = getFavoriteTileName(tileId);
         var thumbnailControl = new ThumbnailControl({
-                id: tileId,
-                renderer: favoriteTileThumbnailRenderer,
-                icon: "tile",
+                id: favoriteInfo.id,
+                renderer: renderer,
+                icon: icon,
                 text: favoriteName,
-                tooltip: favoriteName + " (" + tileId + ")",
-                isSelectedFunc: function(id) {
-                        return drawing && drawing.type === TileType.Tile && drawing.id === id;
+                tooltip: favoriteName + " (" + favoriteInfo.id + ")",
+                isSelectedFunc: function() {
+                        return drawing
+                                && ((favoriteInfo.type === FavoriteType.Tile && drawing.type === TileType.Tile)
+                                        || (favoriteInfo.type === FavoriteType.Item && drawing.type === TileType.Item))
+                                && drawing.id === favoriteInfo.id;
                 },
                 onclick: function() {
-                        selectFavoriteTile(tileId);
+                        selectFavoriteDrawing(favoriteKey);
                 },
                 renderOptions: { isAnimated: true },
         });
@@ -452,36 +455,49 @@ function renderFavoriteTiles() {
                 favoriteTileThumbnailRenderer = createTileThumbnailRenderer();
         }
 
-        var validFavorites = getValidFavoriteTiles();
-        var needsSave = validFavorites.length !== tileFavorites.length;
+        if (!favoriteItemThumbnailRenderer) {
+                favoriteItemThumbnailRenderer = createItemThumbnailRenderer();
+        }
 
-        tileFavorites = validFavorites;
+        var favoriteData = getFavoriteDrawingData();
 
-        if (needsSave) {
+        var tileNeedsSave = favoriteData.tileIds.length !== tileFavorites.length;
+        var itemNeedsSave = favoriteData.itemIds.length !== itemFavorites.length;
+
+        tileFavorites = favoriteData.tileIds;
+        itemFavorites = favoriteData.itemIds;
+
+        if (tileNeedsSave) {
                 saveTileFavorites();
         }
 
-        grid.innerHTML = "";
-        favoriteTileControls = [];
+        if (itemNeedsSave) {
+                saveItemFavorites();
+        }
 
-        if (validFavorites.length <= 0) {
+        grid.innerHTML = "";
+        favoriteDrawingControls = [];
+
+        if (favoriteData.keys.length <= 0) {
                 emptyState.style.display = "inline-flex";
                 return;
         }
 
         emptyState.style.display = "none";
         favoriteTileThumbnailRenderer.InvalidateCache();
+        favoriteItemThumbnailRenderer.InvalidateCache();
 
-        for (var i = 0; i < validFavorites.length; i++) {
-                var tileId = validFavorites[i];
-                var favoriteTileControl = createFavoriteTileControl(tileId);
+        for (var k = 0; k < favoriteData.keys.length; k++) {
+                var favoriteControl = createFavoriteDrawingControl(favoriteData.keys[k]);
 
-                favoriteTileControls.push(favoriteTileControl);
-                grid.appendChild(favoriteTileControl.element);
-                favoriteTileControl.LoadThumbnailImage();
+                if (favoriteControl) {
+                        favoriteDrawingControls.push(favoriteControl);
+                        grid.appendChild(favoriteControl.element);
+                        favoriteControl.LoadThumbnailImage();
+                }
         }
 
-        updateFavoriteTileSelection();
+        updateFavoriteSelection();
 }
 
 function renderFavoriteItems() {
@@ -545,7 +561,11 @@ function initFavoriteTilesUI() {
         renderFavoriteItems();
 
         events.Listen("tile_favorite_toggled", function() {
-                renderFavoriteTiles();
+                renderFavoriteDrawings();
+        });
+
+        events.Listen("item_favorite_toggled", function() {
+                renderFavoriteDrawings();
         });
 
         events.Listen("item_favorite_toggled", function() {

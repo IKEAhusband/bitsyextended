@@ -127,66 +127,104 @@ function FindTool(options) {
 			},
 			renderer: itemThumbnailRenderer,
 		                },
-                {
-                        id: "ROOM",
-                        icon: "room",
-                        getIdList: function() { return sortedRoomIdList(); },
-			getCategoryName: function() {
-				return localization.GetStringOrFallback("room_label", "room");
-			},
-			getItemName: function(id) {
-				return (id && room[id]) ? room[id].name : "";
-			},
-			setItemName: function(id, name) {
-				if (room[id]) {
-					room[id].name = name;
-				}
-			},
-			getItemDescription: function(id, short) {
-				if (short) {
-					return id;
-				}
-				else if (id) {
-					return localization.GetStringOrFallback("room_label", "room") + " " + id;
-				}
-				else {
-					return localization.GetStringOrFallback("room_label", "room");
-				}
-			},
-			isItemSelected: function(id) {
-				return (roomTool != undefined) && roomTool.getSelected() === id;
-			},
-			openTool: function(id) {
-                                selectRoom(id);
-                                showPanel("roomPanel", "findPanel");
-                        },
-                        renderer: roomThumbnailRenderer,
+{
+id: "ROOM",
+icon: "room",
+getIdList: function() { return sortedRoomIdList(); },
+getCategoryName: function() {
+return localization.GetStringOrFallback("room_label", "room");
+},
+getItemName: function(id) {
+return (id && room[id]) ? room[id].name : "";
+},
+                setItemName: function(id, name) {
+                        if (room[id]) {
+                                room[id].name = name;
+                        }
+                },
+                getItemDescription: function(id, short) {
+                        if (short) {
+                                return id;
+                        }
+                        else if (id) {
+                                return localization.GetStringOrFallback("room_label", "room") + " " + id;
+                        }
+                        else {
+                                return localization.GetStringOrFallback("room_label", "room");
+                        }
+                },
+                isItemSelected: function(id) {
+                        return (roomTool != undefined) && roomTool.getSelected() === id;
+                },
+                openTool: function(id) {
+                        selectRoom(id);
+                        showPanel("roomPanel", "findPanel");
+                },
+                renderer: roomThumbnailRenderer,
                 },
                 {
                         id: "FAV",
                         icon: "about",
-                        getIdList: function() { return getValidFavoriteTiles(); },
+                        getIdList: function() {
+                                return getFavoriteDrawingData().keys;
+                        },
                         getCategoryName: function() {
                                 return "favourites";
                         },
-                        getItemName: function(id) {
-                                return getFavoriteTileName(id);
+                        getItemName: function(key) {
+                                return getFavoriteName(parseFavoriteKey(key));
                         },
-                        getItemDescription: function(id, short) {
+                        getItemDescription: function(key, short) {
+                                var favoriteInfo = parseFavoriteKey(key);
+
+                                if (!favoriteInfo) {
+                                        return "";
+                                }
+
                                 if (short) {
-                                        return id;
+                                        return favoriteInfo.id;
                                 }
-                                else {
-                                        return localization.GetStringOrFallback("tile_label", "tile") + " " + id;
+
+                                var label = favoriteInfo.type === FavoriteType.Tile
+                                        ? localization.GetStringOrFallback("tile_label", "tile")
+                                        : localization.GetStringOrFallback("item_label", "item");
+
+                                return label + " " + favoriteInfo.id;
+                        },
+                        isItemSelected: function(key) {
+                                var favoriteInfo = parseFavoriteKey(key);
+
+                                if (!favoriteInfo || !drawing) {
+                                        return false;
                                 }
+
+                                return ((favoriteInfo.type === FavoriteType.Tile && drawing.type === TileType.Tile)
+                                        || (favoriteInfo.type === FavoriteType.Item && drawing.type === TileType.Item))
+                                        && favoriteInfo.id === drawing.id;
                         },
-                        isItemSelected: function(id) {
-                                return (drawing.type === TileType.Tile) && (drawing.id === id);
-                        },
-                        openTool: function(id) {
-                                selectFavoriteTile(id);
+                        openTool: function(key) {
+                                selectFavoriteDrawing(key);
                                 showPanel("paintPanel", "findPanel");
                         },
+                        getRenderer: function(key) {
+                                var favoriteInfo = parseFavoriteKey(key);
+
+                                if (!favoriteInfo) {
+                                        return tileThumbnailRenderer;
+                                }
+
+                                return favoriteInfo.type === FavoriteType.Tile ? tileThumbnailRenderer : itemThumbnailRenderer;
+                        },
+                        getIcon: function(key) {
+                                var favoriteInfo = parseFavoriteKey(key);
+
+                                if (!favoriteInfo) {
+                                        return "about";
+                                }
+
+                                return favoriteInfo.type === FavoriteType.Tile ? "tile" : "item";
+                        },
+                        // fallback renderer/icon for initialization
                         renderer: tileThumbnailRenderer,
                 },
                 {
@@ -439,17 +477,27 @@ function FindTool(options) {
 					var isSearchTextInName = (curSearchText === undefined || curSearchText === null ||
 						curSearchText.length <= 0 || displayName.indexOf(curSearchText) != -1);
 
-					if (isSearchTextInName) {
-						var thumbnailControl = new ThumbnailControl({
-								id: id,
-								renderer: category.renderer,
-								icon: category.icon,
-								text: displayName,
-								tooltip: tooltip,
-								isSelectedFunc: category.isItemSelected,
-								onclick: createOnClick(category, id),
-								renderOptions: { isAnimated: true },
-							});
+                                        if (isSearchTextInName) {
+                                                var renderer = category.renderer;
+                                                if (category.getRenderer) {
+                                                        renderer = category.getRenderer(id);
+                                                }
+
+                                                var icon = category.icon;
+                                                if (category.getIcon) {
+                                                        icon = category.getIcon(id);
+                                                }
+
+                                                var thumbnailControl = new ThumbnailControl({
+                                                        id: id,
+                                                        renderer: renderer,
+                                                        icon: icon,
+                                                        text: displayName,
+                                                        tooltip: tooltip,
+                                                        isSelectedFunc: category.isItemSelected,
+                                                        onclick: createOnClick(category, id),
+                                                        renderOptions: { isAnimated: true },
+                                                });
 
 						items.push(thumbnailControl);
 
