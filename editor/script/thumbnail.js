@@ -302,7 +302,43 @@ function createTileThumbnailRenderer() {
 }
 
 function createItemThumbnailRenderer() {
-	return createDrawingThumbnailRenderer(item);
+return createDrawingThumbnailRenderer(item);
+}
+
+function createLabelThumbnailRenderer(getLabel, options) {
+var palette = options && options.palette ? options.palette : ["000000", "ffffff", "888888"];
+var background = options && options.background ? options.background : palette[0];
+var foreground = options && options.foreground ? options.foreground : palette[1];
+var accent = options && options.accent ? options.accent : palette[2];
+
+var getRenderable = function(id) {
+return { id: id };
+};
+
+var getHexPalette = function() {
+return palette;
+};
+
+var onRender = function(renderable, ctx) {
+ctx.fillStyle = "#" + background;
+ctx.fillRect(0, 0, tilesize * scale, tilesize * scale);
+
+ctx.strokeStyle = "#" + accent;
+ctx.lineWidth = 2;
+ctx.strokeRect(1, 1, (tilesize * scale) - 2, (tilesize * scale) - 2);
+
+ctx.fillStyle = "#" + foreground;
+ctx.font = "bold " + Math.floor(tilesize * scale * 0.35) + "px sans-serif";
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+
+var label = getLabel(renderable.id) || "";
+ctx.fillText(label, (tilesize * scale) / 2, (tilesize * scale) / 2);
+
+return [ctx.getImageData(0, 0, tilesize * scale, tilesize * scale).data];
+};
+
+return new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
 }
 
 function createPaletteThumbnailRenderer() {
@@ -354,9 +390,9 @@ function createPaletteThumbnailRenderer() {
 }
 
 function createRoomThumbnailRenderer() {
-	var getRenderable = function(id) {
-		return room[id];
-	}
+var getRenderable = function(id) {
+return room[id];
+}
 
 	var getHexPalette = function(r) {
 		var hexPalette = [];
@@ -426,56 +462,31 @@ function createRoomThumbnailRenderer() {
 		return [ctx.getImageData(0, 0, roomRenderSize, roomRenderSize).data];
 	}
 
-	var renderer = new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
-	renderer.renderToCtx = onRender;
+var renderer = new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
+renderer.renderToCtx = onRender;
 
-	return renderer;
+return renderer;
 }
 
-// todo : make better blip thumbnail renderer
+function createDialogThumbnailRenderer() {
+return createLabelThumbnailRenderer(function(id) {
+var name = (dialog[id] && dialog[id].name) ? dialog[id].name : ("dialog " + id);
+return name.substring(0, 12);
+}, { background: "111111", foreground: "ffffff", accent: "666666" });
+}
+
+function createTuneThumbnailRenderer() {
+return createLabelThumbnailRenderer(function(id) {
+var name = (tune[id] && tune[id].name) ? tune[id].name : ("tune " + id);
+return name.substring(0, 12);
+}, { background: "101010", foreground: "ffe680", accent: "666666" });
+}
+
 function createBlipThumbnailRenderer() {
-	var getRenderable = function(id) {
-		return blip[id];
-	}
-
-	var getHexPalette = function(blipObj) {
-		var hexPalette = [];
-
-		if (roomTool) {
-			var colors = roomTool.world.palette["0"].colors;
-			for (i in colors) {
-				var hexStr = rgbToHex(colors[i][0], colors[i][1], colors[i][2]).slice(1);
-				hexPalette.push(hexStr);
-			}
-		}
-
-		return hexPalette;
-	}
-
-	var onRender = function(blipObj, ctx, options) {
-		var hexPalette = getHexPalette(blipObj);
-
-		ctx.fillStyle = "#" + hexPalette[2];
-		ctx.fillRect(0, 0, tilesize * scale, tilesize * scale);
-
-		if (soundPlayer) {
-			ctx.fillStyle = "#" + hexPalette[0];
-
-			// draw waveform (copied from makeBlipTile())
-			var blipSamples = soundPlayer.sampleBlip(blipObj, 8);
-			for (var i = 0; i < blipSamples.frequencies.length; i++) {
-				var freq = 1 + Math.floor(blipSamples.frequencies[i] * 4);
-				for (var j = 0; j < freq; j++) {
-					ctx.fillRect(i * scale, (3 - j) * scale, scale, scale);
-					ctx.fillRect(i * scale, (4 + j) * scale, scale, scale);
-				}
-			}
-		}
-
-		return [ctx.getImageData(0, 0, tilesize * scale, tilesize * scale).data];
-	}
-
-	return new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
+return createLabelThumbnailRenderer(function(id) {
+var name = (blip[id] && blip[id].name) ? blip[id].name : ("blip " + id);
+return name.substring(0, 12);
+}, { background: "0f0f1f", foreground: "9bd1ff", accent: "666666" });
 }
 
 function ThumbnailControl(options) {

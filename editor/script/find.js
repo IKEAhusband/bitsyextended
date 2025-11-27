@@ -1,11 +1,14 @@
 function FindTool(options) {
 	options.mainElement.innerHTML = "";
 
-	var spriteThumbnailRenderer = createSpriteThumbnailRenderer();
-	var tileThumbnailRenderer = createTileThumbnailRenderer();
-	var itemThumbnailRenderer = createItemThumbnailRenderer();
-	var paletteThumbnailRenderer = createPaletteThumbnailRenderer();
-	var roomThumbnailRenderer = createRoomThumbnailRenderer();
+var spriteThumbnailRenderer = createSpriteThumbnailRenderer();
+var tileThumbnailRenderer = createTileThumbnailRenderer();
+var itemThumbnailRenderer = createItemThumbnailRenderer();
+var paletteThumbnailRenderer = createPaletteThumbnailRenderer();
+var roomThumbnailRenderer = createRoomThumbnailRenderer();
+var dialogThumbnailRenderer = createDialogThumbnailRenderer();
+var tuneThumbnailRenderer = createTuneThumbnailRenderer();
+var blipThumbnailRenderer = createBlipThumbnailRenderer();
 
 	// todo : try making a blip thumbnail renderer again later..
 	// var blipThumbnailRenderer = createBlipThumbnailRenderer();
@@ -162,33 +165,65 @@ function FindTool(options) {
                         },
                         renderer: roomThumbnailRenderer,
                 },
-                {
-                        id: "FAV",
-                        icon: "about",
-                        getIdList: function() { return getValidFavoriteTiles(); },
-                        getCategoryName: function() {
-                                return "favourites";
-                        },
-                        getItemName: function(id) {
-                                return getFavoriteTileName(id);
-                        },
-                        getItemDescription: function(id, short) {
-                                if (short) {
-                                        return id;
-                                }
-                                else {
-                                        return localization.GetStringOrFallback("tile_label", "tile") + " " + id;
-                                }
-                        },
-                        isItemSelected: function(id) {
-                                return (drawing.type === TileType.Tile) && (drawing.id === id);
-                        },
-                        openTool: function(id) {
-                                selectFavoriteTile(id);
-                                showPanel("paintPanel", "findPanel");
-                        },
-                        renderer: tileThumbnailRenderer,
-                },
+{
+id: "FAV",
+icon: "about",
+getIdList: function() {
+var favorites = getValidFavoriteDrawings();
+
+return favorites.map(function(favorite) {
+return getFavoriteDrawingId(favorite);
+});
+},
+getCategoryName: function() {
+return "favourites";
+},
+getItemName: function(id) {
+var favorite = parseFavoriteDrawingId(id);
+
+if (!favorite) {
+return null;
+}
+
+return getFavoriteName(favorite.type, favorite.id);
+},
+getItemDescription: function(id, short) {
+var favorite = parseFavoriteDrawingId(id);
+
+if (!favorite) {
+return id;
+}
+
+if (short) {
+return favorite.id;
+}
+
+return tileTypeToString(favorite.type) + " " + favorite.id;
+},
+isItemSelected: function(id) {
+var favorite = parseFavoriteDrawingId(id);
+
+return favorite && drawing && drawing.type === favorite.type && drawing.id === favorite.id;
+},
+openTool: function(id) {
+var favorite = parseFavoriteDrawingId(id);
+
+if (favorite) {
+selectFavoriteDrawing(favorite);
+showPanel("paintPanel", "findPanel");
+}
+},
+getItemRenderer: function(id) {
+var favorite = parseFavoriteDrawingId(id);
+
+return favorite ? getFavoriteRenderer(favorite.type) : null;
+},
+getItemIcon: function(id) {
+var favorite = parseFavoriteDrawingId(id);
+
+return favorite ? tileTypeToString(favorite.type) : "about";
+},
+},
                 {
                         id: "PAL",
                         icon: "colors",
@@ -216,16 +251,16 @@ function FindTool(options) {
 			},
 			renderer: paletteThumbnailRenderer,
 		},
-		{
-			id: "DLG",
-			icon: "dialog",
-			getIdList: function() { return [titleDialogId].concat(sortedDialogIdList()); },
-			getCategoryName: function() {
-				return localization.GetStringOrFallback("dialog_tool_name", "dialog");
-			},
-			getItemName: function(id) {
-				return dialog[id].name;
-			},
+{
+id: "DLG",
+icon: "dialog",
+getIdList: function() { return [titleDialogId].concat(sortedDialogIdList()); },
+getCategoryName: function() {
+return localization.GetStringOrFallback("dialog_tool_name", "dialog");
+},
+getItemName: function(id) {
+return dialog[id].name;
+},
 			getItemDescription: function(id, short) {
 				if (short) {
 					return id;
@@ -237,14 +272,16 @@ function FindTool(options) {
 			isItemSelected: function(id) {
 				return id === curDialogEditorId;
 			},
-			openTool: function(id) {
-				openDialogTool(id);
-				showPanel("dialogPanel", "findPanel");
-			},
-		},
-		{
-			id: "TUNE",
-			icon: "tune",
+openTool: function(id) {
+openDialogTool(id);
+showPanel("dialogPanel", "findPanel");
+},
+renderer: dialogThumbnailRenderer,
+favoriteType: FavoriteType.Dialog,
+},
+{
+id: "TUNE",
+icon: "tune",
 			getIdList: function() { return sortedBase36IdList(tune); },
 			getCategoryName: function() { return localization.GetStringOrFallback("tune_tool", "tune"); },
 			getItemName: function(id) { return (id && tune[id]) ? tune[id].name : ""; },
@@ -260,20 +297,22 @@ function FindTool(options) {
 					return "tune";
 				}
 			},
-			isItemSelected: function(id) { return tuneTool && id === tuneTool.getSelected(); },
-			openTool: function(id) {
-				tuneTool.select(id);
-				tuneTool.show("findPanel");
-			},
-			setItemName: function(id, name) {
-				if (tune[id]) {
-					tune[id].name = name;
-				}
-			},
-		},
-		{
-			id: "BLIP",
-			icon: "blip",
+isItemSelected: function(id) { return tuneTool && id === tuneTool.getSelected(); },
+openTool: function(id) {
+tuneTool.select(id);
+tuneTool.show("findPanel");
+},
+setItemName: function(id, name) {
+if (tune[id]) {
+tune[id].name = name;
+}
+},
+renderer: tuneThumbnailRenderer,
+favoriteType: FavoriteType.Tune,
+},
+{
+id: "BLIP",
+icon: "blip",
 			getIdList: function() { return sortedBase36IdList(blip); },
 			getCategoryName: function() { return localization.GetStringOrFallback("blip_sfx", "blip"); },
 			getItemName: function(id) { return (id && blip[id]) ? blip[id].name : ""; },
@@ -296,13 +335,13 @@ function FindTool(options) {
 			},
 			setItemName: function(id, name) {
 				if (blip[id]) {
-					blip[id].name = name;
-				}
-			},
-			// todo : make better blip thumbnail renderer
-			// renderer: blipThumbnailRenderer
-		},
-	];
+blip[id].name = name;
+}
+},
+renderer: blipThumbnailRenderer,
+favoriteType: FavoriteType.Blip,
+},
+];
 
 	var curFilter = "ALL";
 	var curSearchText = "";
@@ -397,38 +436,49 @@ function FindTool(options) {
 			if (curFilter === "ALL" || curFilter === category.id) {
 				var idList = category.getIdList()
 
-				for (var j = 0; j < idList.length; j++) {
-					var id = idList[j];
+                                for (var j = 0; j < idList.length; j++) {
+                                        var id = idList[j];
 
-					var displayName = category.getItemName(id);
-					var tooltip = category.getItemDescription(id);
-					if (displayName === null || displayName === undefined) {
-						displayName = category.getItemDescription(id, true);
-					}
-					else {
-						tooltip = displayName + " (" + tooltip + ")";
-					}
+                                        var displayName = category.getItemName(id);
+                                        var tooltip = category.getItemDescription(id);
+                                        if (displayName === null || displayName === undefined) {
+                                                displayName = category.getItemDescription(id, true);
+                                        }
+                                        else {
+                                                tooltip = displayName + " (" + tooltip + ")";
+                                        }
 
-					var isSearchTextInName = (curSearchText === undefined || curSearchText === null ||
-						curSearchText.length <= 0 || displayName.indexOf(curSearchText) != -1);
+                                        if (tooltip === undefined || tooltip === null) {
+                                                tooltip = "";
+                                        }
 
-					if (isSearchTextInName) {
-						var thumbnailControl = new ThumbnailControl({
-								id: id,
-								renderer: category.renderer,
-								icon: category.icon,
-								text: displayName,
-								tooltip: tooltip,
-								isSelectedFunc: category.isItemSelected,
-								onclick: createOnClick(category, id),
-								renderOptions: { isAnimated: true },
-							});
+                                        var renderer = category.getItemRenderer ? category.getItemRenderer(id) : category.renderer;
+                                        var iconId = category.getItemIcon ? category.getItemIcon(id) : category.icon;
 
-						items.push(thumbnailControl);
+                                        if (!renderer) {
+                                                continue;
+                                        }
 
-						scrollcontentDiv.appendChild(thumbnailControl.GetElement());
-					}
-				}
+                                        var isSearchTextInName = (curSearchText === undefined || curSearchText === null ||
+                                                curSearchText.length <= 0 || displayName.indexOf(curSearchText) != -1);
+
+                                        if (isSearchTextInName) {
+                                                var thumbnailControl = new ThumbnailControl({
+                                                                id: id,
+                                                                renderer: renderer,
+                                                                icon: iconId,
+                                                                text: displayName,
+                                                                tooltip: tooltip,
+                                                                isSelectedFunc: category.isItemSelected,
+                                                                onclick: createOnClick(category, id),
+                                                                renderOptions: { isAnimated: true },
+                                                        });
+
+                                                items.push(thumbnailControl);
+
+                                                scrollcontentDiv.appendChild(thumbnailControl.GetElement());
+                                        }
+                                }
 			}
 		}
 
@@ -457,14 +507,17 @@ function FindTool(options) {
 		}
 	}
 
-	events.Listen("game_data_change", function(event) {
-		spriteThumbnailRenderer.InvalidateCache();
-		tileThumbnailRenderer.InvalidateCache();
-		itemThumbnailRenderer.InvalidateCache();
-		paletteThumbnailRenderer.InvalidateCache();
-		roomThumbnailRenderer.InvalidateCache();
-		GenerateItems();
-	});
+events.Listen("game_data_change", function(event) {
+spriteThumbnailRenderer.InvalidateCache();
+tileThumbnailRenderer.InvalidateCache();
+itemThumbnailRenderer.InvalidateCache();
+paletteThumbnailRenderer.InvalidateCache();
+roomThumbnailRenderer.InvalidateCache();
+dialogThumbnailRenderer.InvalidateCache();
+tuneThumbnailRenderer.InvalidateCache();
+blipThumbnailRenderer.InvalidateCache();
+GenerateItems();
+});
 
         events.Listen("select_drawing", function(event) {
                 UpdateSelectedItems();
@@ -478,10 +531,19 @@ function FindTool(options) {
                 UpdateSelectedItems();
         });
 
-        events.Listen("tile_favorite_toggled", function(event) {
-                tileThumbnailRenderer.InvalidateCache();
-                GenerateItems();
-        });
+events.Listen("favorite_toggled", function(event) {
+if (event && event.drawingType === TileType.Sprite) {
+spriteThumbnailRenderer.InvalidateCache();
+}
+else if (event && event.drawingType === TileType.Item) {
+itemThumbnailRenderer.InvalidateCache();
+}
+else if (event && event.drawingType === TileType.Tile) {
+tileThumbnailRenderer.InvalidateCache();
+}
+
+GenerateItems();
+});
 
 
 	// TODO : somehow palette selection works already??? find out why.. (is it triggering a game data refresh?)
