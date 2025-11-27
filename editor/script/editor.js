@@ -1604,7 +1604,7 @@ function updatePaintUndoRedoButtons() {
         var clearButton = document.getElementById("paintClearButton");
         var nudgeButton = document.getElementById("paintNudgeButton");
         var mirrorButton = document.getElementById("paintMirrorButton");
-        var directionInputs = document.getElementsByName("paintDirection");
+        var directionInput = document.getElementById("paintDirectionSelect");
 
         if (!undoButton || !redoButton || !rotateButton || !invertButton || !clearButton || !nudgeButton || !mirrorButton) {
                 return;
@@ -1626,8 +1626,8 @@ function updatePaintUndoRedoButtons() {
         nudgeButton.disabled = !canUseDirectionalTools;
         mirrorButton.disabled = !canUseDirectionalTools;
 
-        for (var i = 0; i < directionInputs.length; i++) {
-                directionInputs[i].disabled = !canUseDirectionalTools;
+        if (directionInput) {
+                directionInput.disabled = !canUseDirectionalTools;
         }
 }
 
@@ -1745,11 +1745,11 @@ function onPaintDirectionChange(event) {
 }
 
 function getSelectedPaintDirection() {
-        var selectedDirection = document.querySelector("input[name='paintDirection']:checked");
+        var directionSelect = document.getElementById("paintDirectionSelect");
 
-        if (selectedDirection) {
-                paintDirection = selectedDirection.value;
-                return selectedDirection.value;
+        if (directionSelect) {
+                paintDirection = directionSelect.value || paintDirection;
+                return paintDirection;
         }
 
         return paintDirection;

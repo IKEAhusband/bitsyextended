@@ -553,25 +553,13 @@
 </button>
 
 <div id="paintDirectionControls" aria-label="paint direction" class="paint-direction-controls">
-        <input type="radio" name="paintDirection" id="paintDirectionLeft" value="left" onclick="onPaintDirectionChange(event);" checked autocomplete="off" />
-        <label title="left" for="paintDirectionLeft">
-                <span class="bitsy_icon">move_left</span>
-        </label>
-
-        <input type="radio" name="paintDirection" id="paintDirectionRight" value="right" onclick="onPaintDirectionChange(event);" autocomplete="off" />
-        <label title="right" for="paintDirectionRight">
-                <span class="bitsy_icon">move_right</span>
-        </label>
-
-        <input type="radio" name="paintDirection" id="paintDirectionUp" value="up" onclick="onPaintDirectionChange(event);" autocomplete="off" />
-        <label title="up" for="paintDirectionUp">
-                <span class="bitsy_icon">arrow_up</span>
-        </label>
-
-        <input type="radio" name="paintDirection" id="paintDirectionDown" value="down" onclick="onPaintDirectionChange(event);" autocomplete="off" />
-        <label title="down" for="paintDirectionDown">
-                <span class="bitsy_icon">arrow_down</span>
-        </label>
+        <label for="paintDirectionSelect" class="bitsy-menu-label">direction</label>
+        <select id="paintDirectionSelect" name="paintDirection" onchange="onPaintDirectionChange(event);" autocomplete="off">
+                <option value="left">left</option>
+                <option value="right">right</option>
+                <option value="up">up</option>
+                <option value="down">down</option>
+        </select>
 </div>
 
 <button id="paintClearButton" title="clear" class="color0" onclick="clearPaintEdit();" disabled>
