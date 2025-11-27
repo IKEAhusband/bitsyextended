@@ -74,6 +74,12 @@ width: 100%;
 max-width: 100%;
 }
 
+#animationFrameReorder {
+        display: flex;
+        justify-content: center;
+        gap: var(--bitsy-space-s);
+}
+
 #animationFrameList {
 display: flex;
 align-items: stretch;

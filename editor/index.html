@@ -581,34 +581,43 @@
                                                                         </button>
                                                                 </div>
                                                         </div>
-                                                        <div id="animation" style="display:none;">
-                                                                <div class="bitsy-menu-group">
-                                                                        <div class="bitsy-thumbnail">
-                                                                                <div class="bitsy-thumbnail-image-container">
-                                                                                        <img id="animationThumbnailPreview" />
-                                                                                </div>
-                                                                                <label class="bitsy-menu-label">
-                                                                                        <span class="localize animation_preview">preview</span>
-                                                                                </label>
-                                                                        </div>
-                                                                        <div id="animationFrameStrip">
-                                                                                <div id="animationFrameSliderContainer">
-                                                                                        <input
-                                                                                                type="range"
-                                                                                                id="animationFrameSlider"
-                                                                                                min="0"
-                                                                                                max="0"
-                                                                                                value="0"
-                                                                                                step="1"
-                                                                                                oninput="onAnimationFrameSliderChange(this.value);"
-                                                                                        />
-                                                                                </div>
-                                                                                <div id="animationFrameList" onwheel="onAnimationFrameWheel(event);">
-                                                                                        <div id="animationFrames"></div>
-                                                                                </div>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
+								<div id="animation" style="display:none;">
+									<div class="bitsy-menu-group">
+										<div class="bitsy-thumbnail">
+											<div class="bitsy-thumbnail-image-container">
+												<img id="animationThumbnailPreview" />
+											</div>
+											<label class="bitsy-menu-label">
+												<span class="localize animation_preview">preview</span>
+											</label>
+										</div>
+										<div id="animationFrameStrip">
+											<div id="animationFrameSliderContainer">
+												<input
+													type="range"
+													id="animationFrameSlider"
+													min="0"
+													max="0"
+													value="0"
+													step="1"
+													oninput="onAnimationFrameSliderChange(this.value);"
+												/>
+											</div>
+											<div id="animationFrameReorder">
+												<button id="animationFramePrevious" class="bitsy-menu-label animation-shift-frame" onclick="on_shift_animation_frame(-1);" title="move frame left">
+													<span class="bitsy_icon">chevron_left</span>
+												</button>
+												<button id="animationFrameNext" class="bitsy-menu-label animation-shift-frame" onclick="on_shift_animation_frame(1);" title="move frame right">
+													<span class="bitsy_icon">chevron_right</span>
+												</button>
+											</div>
+											<div id="animationFrameList" onwheel="onAnimationFrameWheel(event);">
+												<div id="animationFrames"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
                                                 </div>
 
 

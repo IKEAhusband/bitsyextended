@@ -3195,6 +3195,48 @@ function on_delete_animation_frame() {
         scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
 }
 
+function on_shift_animation_frame(direction) {
+        if (!paintTool.isCurDrawingAnimated) {
+                return;
+        }
+
+        var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
+
+        if (drawingSource.length <= 1) {
+                return;
+        }
+
+        var currentIndex = Math.max(0, Math.min(paintTool.curDrawingFrameIndex, drawingSource.length - 1));
+        var targetIndex = currentIndex + direction;
+
+        if (targetIndex < 0 || targetIndex >= drawingSource.length) {
+                scrollAnimationFrameIntoView(currentIndex);
+                return;
+        }
+
+        var temp = drawingSource[currentIndex];
+        drawingSource[currentIndex] = drawingSource[targetIndex];
+        drawingSource[targetIndex] = temp;
+
+        renderer.SetDrawingSource(drawing.drw, drawingSource);
+
+        var drawingData = getCurrentDrawingData();
+
+        if (drawingData) {
+                setDrawingAnimationMetadata(drawingData, drawingSource.length);
+        }
+
+        paintTool.curDrawingFrameIndex = targetIndex;
+
+        renderer.ClearCache();
+        refreshGameData();
+        paintTool.reloadDrawing();
+        resetAllAnimations();
+        renderAnimationFrames(drawing);
+        scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+        renderAnimationPreview(drawing);
+}
+
 function selectAnimationFrame(frameIndex) {
 	var drawingSource = renderer.GetDrawingSource(drawing.drw) || [];
 
