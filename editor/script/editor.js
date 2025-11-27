@@ -1295,10 +1295,12 @@ function start() {
 	openDialogTool(titleDialogId, undefined, false); // start with the title open
 	alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked;
 
-	// find tool
-	findTool = new FindTool({
-		mainElement : document.getElementById("findPanelMain"),
-	});
+        // find tool
+        findTool = new FindTool({
+                mainElement : document.getElementById("findPanelMain"),
+        });
+
+        initFavoriteDrawingsUI();
 
 	// hack: reload drawing after find tool is created, so the blip dropdown is up-to-date
 	paintTool.reloadDrawing();
