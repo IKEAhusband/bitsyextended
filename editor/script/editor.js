@@ -1398,19 +1398,51 @@ function prev() {
 }
 
 function copyDrawingData(sourceDrawingData) {
-	var copiedDrawingData = [];
+        var copiedDrawingData = [];
 
-	for (frame in sourceDrawingData) {
-		copiedDrawingData.push([]);
-		for (y in sourceDrawingData[frame]) {
-			copiedDrawingData[frame].push([]);
-			for (x in sourceDrawingData[frame][y]) {
-				copiedDrawingData[frame][y].push(sourceDrawingData[frame][y][x]);
-			}
-		}
-	}
+        for (frame in sourceDrawingData) {
+                copiedDrawingData.push([]);
+                for (y in sourceDrawingData[frame]) {
+                        copiedDrawingData[frame].push([]);
+                        for (x in sourceDrawingData[frame][y]) {
+                                copiedDrawingData[frame][y].push(sourceDrawingData[frame][y][x]);
+                        }
+                }
+        }
 
-	return copiedDrawingData;
+        return copiedDrawingData;
+}
+
+function rotateFrameClockwise(frameData) {
+        var size = frameData.length;
+        var rotatedFrame = [];
+
+        for (var y = 0; y < size; y++) {
+                rotatedFrame.push([]);
+                for (var x = 0; x < size; x++) {
+                        rotatedFrame[y].push(0);
+                }
+        }
+
+        for (var y = 0; y < size; y++) {
+                for (var x = 0; x < size; x++) {
+                        var newY = x;
+                        var newX = size - 1 - y;
+                        rotatedFrame[newY][newX] = frameData[y][x];
+                }
+        }
+
+        return rotatedFrame;
+}
+
+function rotateDrawingFramesClockwise(frames) {
+        var rotatedFrames = [];
+
+        for (var i = 0; i < frames.length; i++) {
+                rotatedFrames.push(rotateFrameClockwise(frames[i]));
+        }
+
+        return rotatedFrames;
 }
 
 var paintHistory = {
@@ -1437,19 +1469,22 @@ function getPaintHistoryKey(drawingData) {
 }
 
 function updatePaintUndoRedoButtons() {
-	var undoButton = document.getElementById("paintUndoButton");
-	var redoButton = document.getElementById("paintRedoButton");
+        var undoButton = document.getElementById("paintUndoButton");
+        var redoButton = document.getElementById("paintRedoButton");
+        var rotateButton = document.getElementById("paintRotateButton");
 
-	if (!undoButton || !redoButton) {
-		return;
-	}
+        if (!undoButton || !redoButton || !rotateButton) {
+                return;
+        }
 
-	var keyMatches = paintHistory.key != null && paintHistory.key === getPaintHistoryKey(drawing);
-	var canUndo = keyMatches && paintHistory.index > 0;
-	var canRedo = keyMatches && paintHistory.index >= 0 && paintHistory.index < paintHistory.states.length - 1;
+        var keyMatches = paintHistory.key != null && paintHistory.key === getPaintHistoryKey(drawing);
+        var canUndo = keyMatches && paintHistory.index > 0;
+        var canRedo = keyMatches && paintHistory.index >= 0 && paintHistory.index < paintHistory.states.length - 1;
+        var canRotate = keyMatches;
 
-	undoButton.disabled = !canUndo;
-	redoButton.disabled = !canRedo;
+        undoButton.disabled = !canUndo;
+        redoButton.disabled = !canRedo;
+        rotateButton.disabled = !canRotate;
 }
 
 function resetPaintHistoryForDrawing(drawingData) {
@@ -1549,14 +1584,51 @@ function undoPaintEdit() {
 }
 
 function redoPaintEdit() {
-	var historyKey = getPaintHistoryKey(drawing);
+        var historyKey = getPaintHistoryKey(drawing);
 
-	if (paintHistory.key !== historyKey || paintHistory.index >= paintHistory.states.length - 1) {
-		return;
-	}
+        if (paintHistory.key !== historyKey || paintHistory.index >= paintHistory.states.length - 1) {
+                return;
+        }
 
-	paintHistory.index++;
-	applyPaintHistoryState();
+        paintHistory.index++;
+        applyPaintHistoryState();
+}
+
+function rotatePaintEdit() {
+        var historyKey = getPaintHistoryKey(drawing);
+
+        if (!historyKey) {
+                return;
+        }
+
+        var drawingFrames = getDrawingImageSource(drawing);
+
+        if (!drawingFrames || drawingFrames.length <= 0) {
+                return;
+        }
+
+        var rotatedFrames = rotateDrawingFramesClockwise(drawingFrames);
+
+        renderer.SetDrawingSource(drawing.drw, rotatedFrames);
+
+        var drawingData = getCurrentDrawingData();
+
+        if (drawingData && drawingData.animation) {
+                setDrawingAnimationMetadata(drawingData, rotatedFrames.length);
+        }
+
+        renderer.ClearCache();
+        refreshGameData();
+        paintTool.reloadDrawing();
+        paintTool.updateCanvas();
+
+        if (paintTool.isCurDrawingAnimated) {
+                renderAnimationFrames(drawing);
+                renderAnimationPreview(drawing);
+                scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+        }
+
+        events.Raise("paint_edit");
 }
 
 events.Listen("select_drawing", function() {
