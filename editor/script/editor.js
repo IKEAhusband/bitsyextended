@@ -1874,6 +1874,7 @@ function onPaintColorSelectChange(event) {
         refreshGameData();
         paintTool.updateCanvas();
         updatePaintColorSummary(colors, clampedIndex);
+        renderPaintThumbnail(drawing);
 
         if (paintTool.isCurDrawingAnimated) {
                 renderAnimationPreview(drawing);
