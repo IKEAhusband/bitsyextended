@@ -219,131 +219,147 @@ return getDrawingFrameData(drawing, frameIndex);
         }
 
 	this.selectDrawing = function(drawingData) {
-		drawing = drawingData; // ok this global variable is weird imo
-		self.reloadDrawing();
-		self.updateCanvas();
+	drawing = drawingData; // ok this global variable is weird imo
+	self.reloadDrawing();
+	self.updateCanvas();
+
+	if (typeof resetPaintHistoryForDrawing === "function") {
+	resetPaintHistoryForDrawing(drawing);
+	}
 	}
 
-        this.toggleWall = function(checked) {
-                if (drawing.type != TileType.Tile) {
-                        return;
-                }
+	this.toggleWall = function(checked) {
+	if (drawing.type != TileType.Tile) {
+	return;
+	}
 
-		if (drawing.isWall == undefined || drawing.isWall == null) {
-			// clear out any existing wall settings for this tile in any rooms
-			// (this is back compat for old-style wall settings)
-			for (roomId in room) {
-				var i = room[roomId].walls.indexOf(drawing.id);
+	if (drawing.isWall == undefined || drawing.isWall == null) {
+	// clear out any existing wall settings for this tile in any rooms
+	// (this is back compat for old-style wall settings)
+	for (roomId in room) {
+	var i = room[roomId].walls.indexOf(drawing.id);
 
-				if (i > -1) {
-					room[roomId].walls.splice(i, 1);
-				}
-			}
-		}
+	if (i > -1) {
+	room[roomId].walls.splice(i, 1);
+	}
+	}
+	}
 
-		drawing.isWall = checked;
+	drawing.isWall = checked;
 
-		refreshGameData();
+	refreshGameData();
 
-                if (toggleWallUI != null && toggleWallUI != undefined) { // a bit hacky
-                        toggleWallUI(checked);
-                }
-        }
+	if (toggleWallUI != null && toggleWallUI != undefined) { // a bit hacky
+	toggleWallUI(checked);
+	}
+	}
 
-        this.toggleTransparentBgc = function(checked) {
-                if (drawing.type === TileType.Tile) {
-                        return;
-                }
+	this.toggleTransparentBgc = function(checked) {
+	if (drawing.type === TileType.Tile) {
+	return;
+	}
 
-                drawing.bgc = checked ? (-1 * tileColorStartIndex) : 0;
+	drawing.bgc = checked ? (-1 * tileColorStartIndex) : 0;
 
-                refreshGameData();
+	refreshGameData();
 
-                if (toggleTransparentBgcUI != null && toggleTransparentBgcUI != undefined) {
-                        toggleTransparentBgcUI(checked);
-                }
+	if (toggleTransparentBgcUI != null && toggleTransparentBgcUI != undefined) {
+	toggleTransparentBgcUI(checked);
+	}
 
-                self.updateCanvas();
-        }
+	self.updateCanvas();
+	}
 
 	this.getCurObject = function() {
-		return drawing;
+	return drawing;
 	}
 
 	this.newDrawing = function(imageData) {
-		if (drawing.type === TileType.Tile) {
-			newTile(imageData);
-		}
-		else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
-			newSprite(imageData);
-		}
-		else if (drawing.type === TileType.Item) {
-			newItem(imageData);
-		}
+	if (drawing.type === TileType.Tile) {
+	newTile(imageData);
 	}
-	
+	else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
+	newSprite(imageData);
+	}
+	else if (drawing.type === TileType.Item) {
+	newItem(imageData);
+	}
+	}
+
 	this.duplicateDrawing = function() {
-		var sourceImageData = getDrawingImageSource(drawing);
-		var copiedImageData = copyDrawingData(sourceImageData);
+	var sourceImageData = getDrawingImageSource(drawing);
+	var copiedImageData = copyDrawingData(sourceImageData);
 
-		// tiles have extra data to copy
-		var tileIsWall = false;
-		if (drawing.type === TileType.Tile) {
-			tileIsWall = drawing.isWall;
-		}
+	// tiles have extra data to copy
+	var tileIsWall = false;
+	if (drawing.type === TileType.Tile) {
+	tileIsWall = drawing.isWall;
+	}
 
-		this.newDrawing(copiedImageData);
+	this.newDrawing(copiedImageData);
 
-		// tiles have extra data to copy
-		if (drawing.type === TileType.Tile) {
-			drawing.isWall = tileIsWall;
-			// make sure the wall toggle gets updated
-			self.reloadDrawing();
-		}
+	// tiles have extra data to copy
+	if (drawing.type === TileType.Tile) {
+	drawing.isWall = tileIsWall;
+	// make sure the wall toggle gets updated
+	self.reloadDrawing();
+	}
 	}
 
 	// TODO -- sould these newDrawing methods be internal to PaintTool?
 	function newTile(imageData) {
-		var id = nextTileId();
-		makeTile(id, imageData);
+	var id = nextTileId();
+	makeTile(id, imageData);
 
-		drawing = tile[id];
-		self.reloadDrawing(); //hack for ui consistency (hack x 2: order matters for animated tiles)
+	drawing = tile[id];
+	self.reloadDrawing(); //hack for ui consistency (hack x 2: order matters for animated tiles)
 
-		self.updateCanvas();
-		refreshGameData();
+	self.updateCanvas();
+	refreshGameData();
 
-		tileIndex = Object.keys(tile).length - 1;
+	if (typeof resetPaintHistoryForDrawing === "function") {
+	resetPaintHistoryForDrawing(drawing);
+	}
+
+	tileIndex = Object.keys(tile).length - 1;
 	}
 
 	function newSprite(imageData) {
-		var id = nextSpriteId();
-		makeSprite(id, imageData);
+	var id = nextSpriteId();
+	makeSprite(id, imageData);
 
-		drawing = sprite[id];
-		self.reloadDrawing(); //hack (order matters for animated tiles)
+	drawing = sprite[id];
+	self.reloadDrawing(); //hack (order matters for animated tiles)
 
-		self.updateCanvas();
-		refreshGameData();
+	self.updateCanvas();
+	refreshGameData();
 
-		spriteIndex = Object.keys(sprite).length - 1;
+	if (typeof resetPaintHistoryForDrawing === "function") {
+	resetPaintHistoryForDrawing(drawing);
+	}
+
+	spriteIndex = Object.keys(sprite).length - 1;
 	}
 
 	function newItem(imageData) {
-		var id = nextItemId();
-		makeItem(id, imageData);
+	var id = nextItemId();
+	makeItem(id, imageData);
 
-		drawing = item[id];
-		self.reloadDrawing(); //hack (order matters for animated tiles)
+	drawing = item[id];
+	self.reloadDrawing(); //hack (order matters for animated tiles)
 
-		self.updateCanvas();
-		updateInventoryItemUI();
-		refreshGameData();
+	self.updateCanvas();
+	updateInventoryItemUI();
+	refreshGameData();
 
-		itemIndex = Object.keys(item).length - 1;
+	if (typeof resetPaintHistoryForDrawing === "function") {
+	resetPaintHistoryForDrawing(drawing);
 	}
 
-	// TODO - may need to extract this for different tools beyond the paint tool (put it in core.js?)
+	itemIndex = Object.keys(item).length - 1;
+	}
+
+// TODO - may need to extract this for different tools beyond the paint tool (put it in core.js?)
 	this.deleteDrawing = function() {
 		var shouldDelete = true;
 		shouldDelete = confirm("Are you sure you want to delete this drawing?");

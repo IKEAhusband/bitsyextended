@@ -892,15 +892,16 @@ var defaultPanelPrefs = {
 		{ id:"aboutPanel", 			visible:true, 	position:0  },
 		{ id:"roomPanel", 			visible:true, 	position:1  },
 		{ id:"paintPanel", 			visible:true, 	position:2  },
-		{ id:"colorsPanel", 		visible:true, 	position:3  },
-		{ id:"gamePanel", 			visible:true, 	position:4  },
-		{ id:"gifPanel", 			visible:false, 	position:5  },
-		{ id:"exitsPanel", 			visible:false, 	position:6  },
-		{ id:"dialogPanel",			visible:false,	position:7 },
-		{ id:"findPanel",			visible:false,	position:8  },
-		{ id:"inventoryPanel",		visible:false,	position:9 },
-		{ id:"tunePanel",			visible:false,	position:10 },
-		{ id:"blipPanel",			visible:false,	position:11 },
+		{ id:"favoritesPanel", 	visible:false, 	position:3  },
+		{ id:"colorsPanel", 		visible:true, 	position:4  },
+		{ id:"gamePanel", 			visible:true, 	position:5  },
+		{ id:"gifPanel", 			visible:false, 	position:6  },
+		{ id:"exitsPanel", 			visible:false, 	position:7  },
+		{ id:"dialogPanel",			visible:false,	position:8 },
+		{ id:"findPanel",			visible:false,	position:9  },
+		{ id:"inventoryPanel",		visible:false,	position:10 },
+		{ id:"tunePanel",			visible:false,	position:11 },
+		{ id:"blipPanel",			visible:false,	position:12 },
 	]
 };
 // bitsyLog(defaultPanelPrefs, "editor");
@@ -1397,20 +1398,174 @@ function prev() {
 }
 
 function copyDrawingData(sourceDrawingData) {
-    var copiedDrawingData = [];
+	var copiedDrawingData = [];
 
-    for (frame in sourceDrawingData) {
-        copiedDrawingData.push([]);
-        for (y in sourceDrawingData[frame]) {
-            copiedDrawingData[frame].push([]);
-            for (x in sourceDrawingData[frame][y]) {
-                copiedDrawingData[frame][y].push(sourceDrawingData[frame][y][x]);
-            }
-        }
-    }
+	for (frame in sourceDrawingData) {
+		copiedDrawingData.push([]);
+		for (y in sourceDrawingData[frame]) {
+			copiedDrawingData[frame].push([]);
+			for (x in sourceDrawingData[frame][y]) {
+				copiedDrawingData[frame][y].push(sourceDrawingData[frame][y][x]);
+			}
+		}
+	}
 
-    return copiedDrawingData;
+	return copiedDrawingData;
 }
+
+var paintHistory = {
+	key: null,
+	states: [],
+	index: -1,
+};
+
+function getPaintHistoryKey(drawingData) {
+	if (!drawingData) {
+		return null;
+	}
+
+	if (
+		drawingData.type === TileType.Tile ||
+		drawingData.type === TileType.Avatar ||
+		drawingData.type === TileType.Sprite ||
+		drawingData.type === TileType.Item
+	) {
+		return drawingData.type + ":" + drawingData.id;
+	}
+
+	return null;
+}
+
+function updatePaintUndoRedoButtons() {
+	var undoButton = document.getElementById("paintUndoButton");
+	var redoButton = document.getElementById("paintRedoButton");
+
+	if (!undoButton || !redoButton) {
+		return;
+	}
+
+	var keyMatches = paintHistory.key != null && paintHistory.key === getPaintHistoryKey(drawing);
+	var canUndo = keyMatches && paintHistory.index > 0;
+	var canRedo = keyMatches && paintHistory.index >= 0 && paintHistory.index < paintHistory.states.length - 1;
+
+	undoButton.disabled = !canUndo;
+	redoButton.disabled = !canRedo;
+}
+
+function resetPaintHistoryForDrawing(drawingData) {
+	var historyKey = getPaintHistoryKey(drawingData);
+
+	paintHistory.key = historyKey;
+	paintHistory.states = [];
+	paintHistory.index = -1;
+
+	if (!historyKey) {
+		updatePaintUndoRedoButtons();
+		return;
+	}
+
+	var drawingFrames = getDrawingImageSource(drawingData);
+
+	if (!drawingFrames) {
+		updatePaintUndoRedoButtons();
+		return;
+	}
+
+	drawingFrames = copyDrawingData(drawingFrames);
+
+	paintHistory.states = [drawingFrames];
+	paintHistory.index = 0;
+
+	updatePaintUndoRedoButtons();
+}
+
+function savePaintHistoryEdit() {
+	var historyKey = getPaintHistoryKey(drawing);
+
+	if (!historyKey) {
+		return;
+	}
+
+	if (paintHistory.key !== historyKey || paintHistory.states.length <= 0) {
+		resetPaintHistoryForDrawing(drawing);
+	}
+
+	if (paintHistory.index < paintHistory.states.length - 1) {
+		paintHistory.states = paintHistory.states.slice(0, paintHistory.index + 1);
+	}
+
+	paintHistory.states.push(copyDrawingData(getDrawingImageSource(drawing)));
+	paintHistory.index++;
+
+	while (paintHistory.states.length > 17) {
+		paintHistory.states.shift();
+		paintHistory.index = Math.max(0, paintHistory.index - 1);
+	}
+
+	updatePaintUndoRedoButtons();
+}
+
+function applyPaintHistoryState() {
+	if (paintHistory.index < 0 || paintHistory.index >= paintHistory.states.length) {
+		updatePaintUndoRedoButtons();
+		return;
+	}
+
+	var frames = copyDrawingData(paintHistory.states[paintHistory.index]);
+
+	renderer.SetDrawingSource(drawing.drw, frames);
+
+	var drawingData = getCurrentDrawingData();
+	if (drawingData && drawingData.animation) {
+		setDrawingAnimationMetadata(drawingData, frames.length);
+	}
+
+	paintTool.curDrawingFrameIndex = Math.min(paintTool.curDrawingFrameIndex, frames.length - 1);
+
+	renderer.ClearCache();
+	refreshGameData();
+	paintTool.reloadDrawing();
+	paintTool.updateCanvas();
+	updateAnimationUI();
+
+	if (paintTool.isCurDrawingAnimated) {
+		renderAnimationFrames(drawing);
+		renderAnimationPreview(drawing);
+		scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
+	}
+
+	updatePaintUndoRedoButtons();
+}
+
+function undoPaintEdit() {
+	var historyKey = getPaintHistoryKey(drawing);
+
+	if (paintHistory.key !== historyKey || paintHistory.index <= 0) {
+		return;
+	}
+
+	paintHistory.index--;
+	applyPaintHistoryState();
+}
+
+function redoPaintEdit() {
+	var historyKey = getPaintHistoryKey(drawing);
+
+	if (paintHistory.key !== historyKey || paintHistory.index >= paintHistory.states.length - 1) {
+		return;
+	}
+
+	paintHistory.index++;
+	applyPaintHistoryState();
+}
+
+events.Listen("select_drawing", function() {
+	resetPaintHistoryForDrawing(drawing);
+});
+
+events.Listen("paint_edit", function() {
+	savePaintHistoryEdit();
+});
 
 function duplicateDrawing() {
     paintTool.duplicateDrawing();
