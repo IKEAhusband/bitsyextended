@@ -533,6 +533,17 @@
                                                                         <span id="paintGridIcon" class="bitsy_icon">visibility</span>
                                                                         <span class="localize grid_toggle_visible">grid</span>
                                                                 </label>
+                                                                <div id="paintColorControl" class="bitsy-menu-label">
+                                                                        <button id="paintColorButton" title="choose drawing color" type="button" class="bitsy-menu-label" onclick="togglePaintColorDropdown(event);">
+                                                                                <span class="bitsy_icon">colors</span>
+                                                                                <span class="paint-color-label">color</span>
+                                                                                <span id="paintColorSelectionText" class="paint-color-text"></span>
+                                                                                <span id="paintColorSwatch" class="paint-color-swatch"></span>
+                                                                        </button>
+                                                                        <div id="paintColorDropdown" class="paint-color-dropdown">
+                                                                                <select id="paintColorSelect" size="4" onchange="onPaintColorSelectChange(event);"></select>
+                                                                        </div>
+                                                                </div>
                                                                 <button id="toggleTileFavoriteButton" title="favorite tile" class="bitsy-menu-label" style="display:none;" onclick="toggleTileFavorite();">
                                                                         <span id="tileFavoriteIcon" class="bitsy_icon">about</span>
                                                                         <span id="tileFavoriteLabel">favourite</span>
