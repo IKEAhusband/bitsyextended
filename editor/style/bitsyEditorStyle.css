@@ -510,39 +510,25 @@ overflow: hidden;
 white-space: nowrap;
 }
 
-.favorite-grid {
+.favorite-tiles-grid {
 display: flex;
 flex-wrap: wrap;
 align-items: flex-start;
 margin: calc(-1 * var(--bitsy-space-s));
 }
 
-.favorite-grid .bitsy-thumbnail {
+.favorite-tiles-grid .bitsy-thumbnail {
 margin: var(--bitsy-space-s);
 }
 
-.favorite-empty-state {
+#favoriteTilesEmptyState {
 width: 100%;
 display: none;
 }
 
-.favorite-empty-state span {
+#favoriteTilesEmptyState span {
 white-space: pre-wrap;
 word-wrap: break-word;
-}
-
-.favorite-section {
- margin-bottom: var(--bitsy-space-l);
-}
-
-.favorite-section:last-child {
- margin-bottom: 0;
-}
-
-.favorite-section-title {
- display: inline-flex;
- align-items: center;
- gap: var(--bitsy-space-s);
 }
 
 /* app root container */
