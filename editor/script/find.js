@@ -126,11 +126,11 @@ function FindTool(options) {
 				showPanel("paintPanel", "findPanel");
 			},
 			renderer: itemThumbnailRenderer,
-                },
-                {
-                        id: "ROOM",
-                        icon: "room",
-                        getIdList: function() { return sortedRoomIdList(); },
+		},
+		{
+			id: "ROOM",
+			icon: "room",
+			getIdList: function() { return sortedRoomIdList(); },
 			getCategoryName: function() {
 				return localization.GetStringOrFallback("room_label", "room");
 			},
@@ -156,44 +156,17 @@ function FindTool(options) {
 			isItemSelected: function(id) {
 				return (roomTool != undefined) && roomTool.getSelected() === id;
 			},
-                        openTool: function(id) {
-                                selectRoom(id);
-                                showPanel("roomPanel", "findPanel");
-                        },
-                        renderer: roomThumbnailRenderer,
-                },
-                {
-                        id: "FAV",
-                        icon: "about",
-                        getIdList: function() { return getValidFavoriteTiles(); },
-                        getCategoryName: function() {
-                                return "favourites";
-                        },
-                        getItemName: function(id) {
-                                return getFavoriteTileName(id);
-                        },
-                        getItemDescription: function(id, short) {
-                                if (short) {
-                                        return id;
-                                }
-                                else {
-                                        return localization.GetStringOrFallback("tile_label", "tile") + " " + id;
-                                }
-                        },
-                        isItemSelected: function(id) {
-                                return (drawing.type === TileType.Tile) && (drawing.id === id);
-                        },
-                        openTool: function(id) {
-                                selectFavoriteTile(id);
-                                showPanel("paintPanel", "findPanel");
-                        },
-                        renderer: tileThumbnailRenderer,
-                },
-                {
-                        id: "PAL",
-                        icon: "colors",
-                        getIdList: function() { return sortedPaletteIdList(); },
-                        getCategoryName: function() {
+			openTool: function(id) {
+				selectRoom(id);
+				showPanel("roomPanel", "findPanel");
+			},
+			renderer: roomThumbnailRenderer,
+		},
+		{
+			id: "PAL",
+			icon: "colors",
+			getIdList: function() { return sortedPaletteIdList(); },
+			getCategoryName: function() {
 				return localization.GetStringOrFallback("palette_tool_name", "colors");
 			},
 			getItemName: function(id) {
@@ -466,22 +439,17 @@ function FindTool(options) {
 		GenerateItems();
 	});
 
-        events.Listen("select_drawing", function(event) {
-                UpdateSelectedItems();
-        });
+	events.Listen("select_drawing", function(event) {
+		UpdateSelectedItems();
+	});
 
-        events.Listen("select_room", function(event) {
+	events.Listen("select_room", function(event) {
 		spriteThumbnailRenderer.InvalidateCache();
 		tileThumbnailRenderer.InvalidateCache();
 		itemThumbnailRenderer.InvalidateCache();
-                UpdateVisibleItems();
-                UpdateSelectedItems();
-        });
-
-        events.Listen("tile_favorite_toggled", function(event) {
-                tileThumbnailRenderer.InvalidateCache();
-                GenerateItems();
-        });
+		UpdateVisibleItems();
+		UpdateSelectedItems();
+	});
 
 	// TODO : somehow palette selection works already??? find out why.. (is it triggering a game data refresh?)
 	// events.Listen("select_palette", function(event) {
