@@ -228,6 +228,33 @@ return (id && room[id]) ? room[id].name : "";
                         renderer: tileThumbnailRenderer,
                 },
                 {
+                        id: "FAV_ITM",
+                        icon: "item",
+                        getIdList: function() { return getValidFavoriteItems(); },
+                        getCategoryName: function() {
+                                return "item favourites";
+                        },
+                        getItemName: function(id) {
+                                return getFavoriteItemName(id);
+                        },
+                        getItemDescription: function(id, short) {
+                                if (short) {
+                                        return id;
+                                }
+                                else {
+                                        return localization.GetStringOrFallback("item_label", "item") + " " + id;
+                                }
+                        },
+                        isItemSelected: function(id) {
+                                return (drawing.type === TileType.Item) && (drawing.id === id);
+                        },
+                        openTool: function(id) {
+                                selectFavoriteItem(id);
+                                showPanel("paintPanel", "findPanel");
+                        },
+                        renderer: itemThumbnailRenderer,
+                },
+                {
                         id: "PAL",
                         icon: "colors",
                         getIdList: function() { return sortedPaletteIdList(); },
