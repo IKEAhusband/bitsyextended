@@ -463,7 +463,12 @@ details.bitsy-menu-group summary {
 }
 
 .bitsy-menu-scrollcontent {
-	white-space: normal;
+        white-space: normal;
+}
+
+.about-docs-link {
+        margin-bottom: var(--bitsy-space-m);
+        word-break: break-word;
 }
 
 /* thumbnail */
