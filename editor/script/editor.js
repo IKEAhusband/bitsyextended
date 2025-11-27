@@ -216,7 +216,7 @@ function updateTileFavoriteButton() {
         button.setAttribute("aria-pressed", isFavorite);
 
         if (icon) {
-                iconUtils.LoadIcon(icon, "about");
+                iconUtils.LoadIcon(icon, "favorite");
         }
 
         if (label) {
@@ -2734,16 +2734,26 @@ function togglePanelUI(id, visible, insertNextToId) {
 		}
 	}
 
-	document.getElementById(id).style.display = visible ? "inline-flex" : "none";
+        document.getElementById(id).style.display = visible ? "inline-flex" : "none";
 
-	if (visible) {
-		cardElement.scrollIntoView();
-	}
+        if (visible) {
+                cardElement.scrollIntoView();
+        }
 
-	// update checkbox
-	if (id != "toolsPanel") {
-		document.getElementById(id.replace("Panel","Check")).checked = visible;
-	}
+        if (visible && id === "favoritesPanel") {
+                if (typeof renderFavoriteTiles === "function") {
+                        renderFavoriteTiles();
+                }
+
+                if (typeof updateFavoriteTileSelection === "function") {
+                        updateFavoriteTileSelection();
+                }
+        }
+
+        // update checkbox
+        if (id != "toolsPanel") {
+                document.getElementById(id.replace("Panel","Check")).checked = visible;
+        }
 }
 
 function updatePanelPrefs() {
