@@ -175,9 +175,9 @@
 		<div id="editorWindow" onmousewheel="blockScrollBackpage(event);">
 			<div id="editorContent">
 
-				<div id="aboutPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item">
-					<div class="bitsy-card-titlebar">
-						<span class="bitsy_icon">about</span>
+                                <div id="aboutPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item">
+                                        <div class="bitsy-card-titlebar">
+                                                <span class="bitsy_icon">about</span>
 
 						<span class="bitsy-card-title" title="about window" onmousedown="grabCard(event);">
 							<span class="localize about_tool_name">about</span>
@@ -193,10 +193,15 @@
 						</button>
 					</div>
 
-					<div id="aboutInner" class="bitsy-card-main">
-						<iframe id="docsFrame" class="bitsy-menu-scrollview" height="100%"></iframe>
-					</div>
-				</div>
+                                        <div id="aboutInner" class="bitsy-card-main">
+                                                <div class="about-docs-link bitsy-menu-scrollcontent">
+                                                        <a href="https://make.bitsy.org/docs/" target="_blank" rel="noopener noreferrer">
+                                                                https://make.bitsy.org/docs/
+                                                        </a>
+                                                </div>
+                                                <iframe id="docsFrame" class="bitsy-menu-scrollview" height="100%"></iframe>
+                                        </div>
+                                </div>
 
 				<div id="exitsPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item" style="display:none;">
 					<div class="bitsy-card-titlebar">
