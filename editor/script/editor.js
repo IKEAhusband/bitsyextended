@@ -663,9 +663,18 @@ function tileTypeToString(type) {
 	else if (type == TileType.Avatar) {
 		return "avatar";
 	}
-	else if (type == TileType.Item) {
-		return "item";
-	}
+else if (type == TileType.Item) {
+return "item";
+}
+else if (type == FavoriteType.Dialog) {
+return "dialog";
+}
+else if (type == FavoriteType.Blip) {
+return "blip";
+}
+else if (type == FavoriteType.Tune) {
+return "tune";
+}
 }
 
 function tileTypeToIdPrefix(type) {
@@ -689,9 +698,9 @@ var curDialogEditorId = null; // can I wrap this all up somewhere? -- feels a bi
 var curDialogEditor = null;
 var curPlaintextDialogEditor = null; // the duplication is a bit weird, but better than recreating editors all the time?
 function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rename since it doesn't always "open" it?
-	if (showIfHidden === undefined || showIfHidden === null) {
-		showIfHidden = true;
-	}
+if (showIfHidden === undefined || showIfHidden === null) {
+showIfHidden = true;
+}
 
 	document.getElementById("deleteDialogButton").disabled = dialogId === titleDialogId;
 
@@ -742,12 +751,55 @@ function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rena
 		(insertNextToId != undefined && insertNextToId != null);
 
 	if (isHiddenOrShouldMove && showIfHidden) {
-		bitsyLog("insert next to : " + insertNextToId, "editor");
-		showPanel("dialogPanel", insertNextToId);
-	}
-
-	events.Raise("select_dialog", { id: curDialogEditorId });
+bitsyLog("insert next to : " + insertNextToId, "editor");
+showPanel("dialogPanel", insertNextToId);
 }
+
+events.Raise("select_dialog", { id: curDialogEditorId });
+
+updateDialogFavoriteButton();
+}
+
+function updateDialogFavoriteButton() {
+var button = document.getElementById("toggleDialogFavoriteButton");
+
+if (!button) {
+return;
+}
+
+var canFavorite = curDialogEditorId && isFavoriteSupportedType(FavoriteType.Dialog);
+
+if (!canFavorite) {
+button.style.display = "none";
+button.disabled = true;
+button.setAttribute("aria-pressed", "false");
+return;
+}
+
+button.style.display = "inline-block";
+button.disabled = false;
+
+var isFav = isDrawingFavorite(FavoriteType.Dialog, curDialogEditorId);
+button.setAttribute("aria-pressed", isFav);
+button.title = isFav
+? "Remove dialog from favourites"
+: "Add dialog to favourites";
+}
+
+function toggleDialogFavorite() {
+if (!curDialogEditorId) {
+return;
+}
+
+toggleFavoriteFor(FavoriteType.Dialog, curDialogEditorId);
+updateDialogFavoriteButton();
+}
+
+events.Listen("favorite_toggled", function(event) {
+if (event && event.drawingType === FavoriteType.Dialog) {
+updateDialogFavoriteButton();
+}
+});
 
 // TODO : probably this should be incorporated into the dialog editor main code somehow
 function onDialogNameChange(event) {

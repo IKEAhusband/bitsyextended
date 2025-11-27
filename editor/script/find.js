@@ -1,11 +1,14 @@
 function FindTool(options) {
 	options.mainElement.innerHTML = "";
 
-	var spriteThumbnailRenderer = createSpriteThumbnailRenderer();
-	var tileThumbnailRenderer = createTileThumbnailRenderer();
-	var itemThumbnailRenderer = createItemThumbnailRenderer();
-	var paletteThumbnailRenderer = createPaletteThumbnailRenderer();
-	var roomThumbnailRenderer = createRoomThumbnailRenderer();
+var spriteThumbnailRenderer = createSpriteThumbnailRenderer();
+var tileThumbnailRenderer = createTileThumbnailRenderer();
+var itemThumbnailRenderer = createItemThumbnailRenderer();
+var paletteThumbnailRenderer = createPaletteThumbnailRenderer();
+var roomThumbnailRenderer = createRoomThumbnailRenderer();
+var dialogThumbnailRenderer = createDialogThumbnailRenderer();
+var tuneThumbnailRenderer = createTuneThumbnailRenderer();
+var blipThumbnailRenderer = createBlipThumbnailRenderer();
 
 	// todo : try making a blip thumbnail renderer again later..
 	// var blipThumbnailRenderer = createBlipThumbnailRenderer();
@@ -248,16 +251,16 @@ return favorite ? tileTypeToString(favorite.type) : "about";
 			},
 			renderer: paletteThumbnailRenderer,
 		},
-		{
-			id: "DLG",
-			icon: "dialog",
-			getIdList: function() { return [titleDialogId].concat(sortedDialogIdList()); },
-			getCategoryName: function() {
-				return localization.GetStringOrFallback("dialog_tool_name", "dialog");
-			},
-			getItemName: function(id) {
-				return dialog[id].name;
-			},
+{
+id: "DLG",
+icon: "dialog",
+getIdList: function() { return [titleDialogId].concat(sortedDialogIdList()); },
+getCategoryName: function() {
+return localization.GetStringOrFallback("dialog_tool_name", "dialog");
+},
+getItemName: function(id) {
+return dialog[id].name;
+},
 			getItemDescription: function(id, short) {
 				if (short) {
 					return id;
@@ -269,14 +272,16 @@ return favorite ? tileTypeToString(favorite.type) : "about";
 			isItemSelected: function(id) {
 				return id === curDialogEditorId;
 			},
-			openTool: function(id) {
-				openDialogTool(id);
-				showPanel("dialogPanel", "findPanel");
-			},
-		},
-		{
-			id: "TUNE",
-			icon: "tune",
+openTool: function(id) {
+openDialogTool(id);
+showPanel("dialogPanel", "findPanel");
+},
+renderer: dialogThumbnailRenderer,
+favoriteType: FavoriteType.Dialog,
+},
+{
+id: "TUNE",
+icon: "tune",
 			getIdList: function() { return sortedBase36IdList(tune); },
 			getCategoryName: function() { return localization.GetStringOrFallback("tune_tool", "tune"); },
 			getItemName: function(id) { return (id && tune[id]) ? tune[id].name : ""; },
@@ -292,20 +297,22 @@ return favorite ? tileTypeToString(favorite.type) : "about";
 					return "tune";
 				}
 			},
-			isItemSelected: function(id) { return tuneTool && id === tuneTool.getSelected(); },
-			openTool: function(id) {
-				tuneTool.select(id);
-				tuneTool.show("findPanel");
-			},
-			setItemName: function(id, name) {
-				if (tune[id]) {
-					tune[id].name = name;
-				}
-			},
-		},
-		{
-			id: "BLIP",
-			icon: "blip",
+isItemSelected: function(id) { return tuneTool && id === tuneTool.getSelected(); },
+openTool: function(id) {
+tuneTool.select(id);
+tuneTool.show("findPanel");
+},
+setItemName: function(id, name) {
+if (tune[id]) {
+tune[id].name = name;
+}
+},
+renderer: tuneThumbnailRenderer,
+favoriteType: FavoriteType.Tune,
+},
+{
+id: "BLIP",
+icon: "blip",
 			getIdList: function() { return sortedBase36IdList(blip); },
 			getCategoryName: function() { return localization.GetStringOrFallback("blip_sfx", "blip"); },
 			getItemName: function(id) { return (id && blip[id]) ? blip[id].name : ""; },
@@ -328,13 +335,13 @@ return favorite ? tileTypeToString(favorite.type) : "about";
 			},
 			setItemName: function(id, name) {
 				if (blip[id]) {
-					blip[id].name = name;
-				}
-			},
-			// todo : make better blip thumbnail renderer
-			// renderer: blipThumbnailRenderer
-		},
-	];
+blip[id].name = name;
+}
+},
+renderer: blipThumbnailRenderer,
+favoriteType: FavoriteType.Blip,
+},
+];
 
 	var curFilter = "ALL";
 	var curSearchText = "";
@@ -500,14 +507,17 @@ return favorite ? tileTypeToString(favorite.type) : "about";
 		}
 	}
 
-	events.Listen("game_data_change", function(event) {
-		spriteThumbnailRenderer.InvalidateCache();
-		tileThumbnailRenderer.InvalidateCache();
-		itemThumbnailRenderer.InvalidateCache();
-		paletteThumbnailRenderer.InvalidateCache();
-		roomThumbnailRenderer.InvalidateCache();
-		GenerateItems();
-	});
+events.Listen("game_data_change", function(event) {
+spriteThumbnailRenderer.InvalidateCache();
+tileThumbnailRenderer.InvalidateCache();
+itemThumbnailRenderer.InvalidateCache();
+paletteThumbnailRenderer.InvalidateCache();
+roomThumbnailRenderer.InvalidateCache();
+dialogThumbnailRenderer.InvalidateCache();
+tuneThumbnailRenderer.InvalidateCache();
+blipThumbnailRenderer.InvalidateCache();
+GenerateItems();
+});
 
         events.Listen("select_drawing", function(event) {
                 UpdateSelectedItems();
