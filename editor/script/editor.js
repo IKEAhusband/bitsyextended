@@ -1166,10 +1166,10 @@ function start() {
 
         loadDrawingFavorites();
 
-        paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
-        paintTool.onReloadTile = function(){ reloadTile() };
-        paintTool.onReloadSprite = function(){ reloadSprite() };
-        paintTool.onReloadItem = function(){ reloadItem() };
+	paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
+	paintTool.onReloadTile = function(){ reloadTile() };
+	paintTool.onReloadSprite = function(){ reloadSprite() };
+	paintTool.onReloadItem = function(){ reloadItem() };
 
 	markerTool = new RoomMarkerTool(document.getElementById("markerCanvas1"), document.getElementById("markerCanvas2") );
 	bitsyLog("MARKER TOOL " + markerTool, "editor");
@@ -1208,7 +1208,7 @@ function start() {
 	updateInventoryUI();
 
 	// init color picker
-	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg', 'colorPickerHexText');
+	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg','colorPickerHexText');
 	document.getElementById("colorPaletteOptionBackground").checked = true;
 	paletteTool = new PaletteTool(colorPicker,["colorPaletteLabelBackground", "colorPaletteLabelTile", "colorPaletteLabelSprite"],"paletteName");
 	events.Listen("palette_change", function(event) {
@@ -1230,7 +1230,7 @@ function start() {
 
 	onInventoryChanged = function(id) {
 		updateInventoryUI();
-	
+
 		// animate to draw attention to change
 		document.getElementById("inventoryItem_" + id).classList.add("flash");
 		setTimeout(
@@ -1244,7 +1244,7 @@ function start() {
 
 	onVariableChanged = function(id) {
 		updateInventoryUI();
-	
+
 		// animate to draw attention to change
 		document.getElementById("inventoryVariable_" + id).classList.add("flash");
 		setTimeout(
@@ -1349,6 +1349,16 @@ function start() {
 
 	// about tool
 	initAbout();
+
+	// favorites last so issues here can't block core tools
+	try {
+		loadDrawingFavorites();
+		updateFavoriteButton();
+		initFavoriteDrawingsUI();
+	}
+	catch (e) {
+		console.error("Failed to initialize favourites UI", e);
+	}
 }
 
 function newDrawing() {
