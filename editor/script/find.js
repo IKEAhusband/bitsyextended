@@ -165,29 +165,38 @@ function FindTool(options) {
                 {
                         id: "FAV",
                         icon: "about",
-                        getIdList: function() { return getValidFavoriteTiles(); },
+                        getIdList: function() { return getFavoriteDrawings(); },
+                        getItemId: function(favorite) { return favorite.id; },
                         getCategoryName: function() {
-                                return "favourites";
+                                return "favourite";
                         },
-                        getItemName: function(id) {
-                                return getFavoriteTileName(id);
+                        getItemName: function(favorite) {
+                                return getFavoriteDrawingName(favorite);
                         },
-                        getItemDescription: function(id, short) {
-                                if (short) {
-                                        return id;
+                        getItemDescription: function(favorite, short) {
+                                var label = tileTypeToString(favorite.type);
+
+                                if (favorite.type === TileType.Tile) {
+                                        label = localization.GetStringOrFallback("tile_label", "tile");
                                 }
-                                else {
-                                        return localization.GetStringOrFallback("tile_label", "tile") + " " + id;
+                                else if (favorite.type === TileType.Sprite) {
+                                        label = localization.GetStringOrFallback("sprite_label", "sprite");
                                 }
+                                else if (favorite.type === TileType.Item) {
+                                        label = localization.GetStringOrFallback("item_label", "item");
+                                }
+
+                                return short ? favorite.id : label + " " + favorite.id;
                         },
-                        isItemSelected: function(id) {
-                                return (drawing.type === TileType.Tile) && (drawing.id === id);
+                        isItemSelectedWithData: function(favorite) {
+                                return drawing && drawing.type === favorite.type && drawing.id === favorite.id;
                         },
-                        openTool: function(id) {
-                                selectFavoriteTile(id);
+                        openToolWithData: function(favorite) {
+                                selectFavoriteDrawing(favorite);
                                 showPanel("paintPanel", "findPanel");
                         },
-                        renderer: tileThumbnailRenderer,
+                        getRenderer: function(favorite) { return getFavoriteThumbnailRenderer(favorite.type); },
+                        getItemIcon: function(favorite) { return tileTypeToString(favorite.type); },
                 },
                 {
                         id: "PAL",
@@ -379,62 +388,80 @@ function FindTool(options) {
 
 	var items = [];
 
-	function GenerateItems() {
-		items = [];
+        function GenerateItems() {
+                items = [];
 
-		function createOnClick(category, id) {
-			return function() {
-				category.openTool(id);
-				UpdateSelectedItems();
-			}
-		}
+                function createOnClick(category, itemData, itemId) {
+                        return function() {
+                                if (category.openToolWithData) {
+                                        category.openToolWithData(itemData);
+                                }
+                                else {
+                                        category.openTool(itemId);
+                                }
 
-		scrollcontentDiv.innerHTML = "";
+                                UpdateSelectedItems();
+                        }
+                }
 
-		for (var i = 0; i < categoryDefinitions.length; i++) {
-			var category = categoryDefinitions[i];
+                scrollcontentDiv.innerHTML = "";
 
-			if (curFilter === "ALL" || curFilter === category.id) {
-				var idList = category.getIdList()
+                for (var i = 0; i < categoryDefinitions.length; i++) {
+                        var category = categoryDefinitions[i];
 
-				for (var j = 0; j < idList.length; j++) {
-					var id = idList[j];
+                        if (curFilter === "ALL" || curFilter === category.id) {
+                                var idList = category.getIdList()
 
-					var displayName = category.getItemName(id);
-					var tooltip = category.getItemDescription(id);
-					if (displayName === null || displayName === undefined) {
-						displayName = category.getItemDescription(id, true);
-					}
-					else {
-						tooltip = displayName + " (" + tooltip + ")";
-					}
+                                for (var j = 0; j < idList.length; j++) {
+                                        var itemData = idList[j];
+                                        var itemId = category.getItemId ? category.getItemId(itemData) : itemData;
 
-					var isSearchTextInName = (curSearchText === undefined || curSearchText === null ||
-						curSearchText.length <= 0 || displayName.indexOf(curSearchText) != -1);
+                                        var displayName = category.getItemName ? category.getItemName(itemData) : itemId;
+                                        var tooltip = category.getItemDescription ? category.getItemDescription(itemData) : itemId;
+                                        if (displayName === null || displayName === undefined) {
+                                                if (category.getItemDescription) {
+                                                        displayName = category.getItemDescription(itemData, true);
+                                                }
+                                                else {
+                                                        displayName = "" + itemId;
+                                                }
+                                        }
+                                        else if (category.getItemDescription) {
+                                                tooltip = displayName + " (" + tooltip + ")";
+                                        }
 
-					if (isSearchTextInName) {
-						var thumbnailControl = new ThumbnailControl({
-								id: id,
-								renderer: category.renderer,
-								icon: category.icon,
-								text: displayName,
-								tooltip: tooltip,
-								isSelectedFunc: category.isItemSelected,
-								onclick: createOnClick(category, id),
-								renderOptions: { isAnimated: true },
-							});
+                                        var isSearchTextInName = (curSearchText === undefined || curSearchText === null ||
+                                                curSearchText.length <= 0 || displayName.indexOf(curSearchText) != -1);
 
-						items.push(thumbnailControl);
+                                        if (isSearchTextInName) {
+                                                var renderer = category.getRenderer ? category.getRenderer(itemData) : category.renderer;
+                                                var icon = category.getItemIcon ? category.getItemIcon(itemData) : category.icon;
+                                                var isSelectedFunc = category.isItemSelectedWithData ?
+                                                        function() { return category.isItemSelectedWithData(itemData); } :
+                                                        function(id) { return category.isItemSelected(itemId); };
 
-						scrollcontentDiv.appendChild(thumbnailControl.GetElement());
-					}
-				}
-			}
-		}
+                                                var thumbnailControl = new ThumbnailControl({
+                                                                id: category.getThumbnailId ? category.getThumbnailId(itemData) : itemId,
+                                                                renderer: renderer,
+                                                                icon: icon,
+                                                                text: displayName,
+                                                                tooltip: tooltip,
+                                                                isSelectedFunc: isSelectedFunc,
+                                                                onclick: createOnClick(category, itemData, itemId),
+                                                                renderOptions: { isAnimated: true },
+                                                        });
 
-		UpdateVisibleItems();
-		UpdateSelectedItems();
-	}
+                                                items.push(thumbnailControl);
+
+                                                scrollcontentDiv.appendChild(thumbnailControl.GetElement());
+                                        }
+                                }
+                        }
+                }
+
+                UpdateVisibleItems();
+                UpdateSelectedItems();
+        }
 
 	function UpdateVisibleItems() {
 		var viewportRect = scrollviewDiv.getBoundingClientRect();
@@ -478,8 +505,10 @@ function FindTool(options) {
                 UpdateSelectedItems();
         });
 
-        events.Listen("tile_favorite_toggled", function(event) {
+        events.Listen("drawing_favorite_toggled", function(event) {
                 tileThumbnailRenderer.InvalidateCache();
+                spriteThumbnailRenderer.InvalidateCache();
+                itemThumbnailRenderer.InvalidateCache();
                 GenerateItems();
         });
 
