@@ -510,25 +510,39 @@ overflow: hidden;
 white-space: nowrap;
 }
 
-.favorite-tiles-grid {
+.favorite-grid {
 display: flex;
 flex-wrap: wrap;
 align-items: flex-start;
 margin: calc(-1 * var(--bitsy-space-s));
 }
 
-.favorite-tiles-grid .bitsy-thumbnail {
+.favorite-grid .bitsy-thumbnail {
 margin: var(--bitsy-space-s);
 }
 
-#favoriteTilesEmptyState {
+.favorite-empty-state {
 width: 100%;
 display: none;
 }
 
-#favoriteTilesEmptyState span {
+.favorite-empty-state span {
 white-space: pre-wrap;
 word-wrap: break-word;
+}
+
+.favorite-section {
+ margin-bottom: var(--bitsy-space-l);
+}
+
+.favorite-section:last-child {
+ margin-bottom: 0;
+}
+
+.favorite-section-title {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--bitsy-space-s);
 }
 
 /* app root container */

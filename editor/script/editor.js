@@ -15,8 +15,15 @@ var events = new EventManager();
 
 /* FAVORITES */
 var tileFavorites = [];
+var itemFavorites = [];
 var favoriteTileThumbnailRenderer = null;
-var favoriteTileControls = [];
+var favoriteItemThumbnailRenderer = null;
+var favoriteDrawingControls = [];
+
+var FavoriteType = {
+        Tile: "tile",
+        Item: "item",
+};
 
 // TODO: what the heck is this helper function for?
 function defParam(param,value) {
@@ -184,32 +191,56 @@ function loadTileFavorites() {
         });
 }
 
+function loadItemFavorites() {
+        var storedFavorites = Store.get("item_favorites", []);
+
+        if (!Array.isArray(storedFavorites)) {
+                storedFavorites = [];
+        }
+
+        itemFavorites = storedFavorites.filter(function(id) {
+                return typeof id === "string";
+        });
+}
+
 function saveTileFavorites() {
         Store.set("tile_favorites", tileFavorites);
+}
+
+function saveItemFavorites() {
+        Store.set("item_favorites", itemFavorites);
 }
 
 function isTileFavorite(tileId) {
         return tileFavorites.indexOf(tileId) > -1;
 }
 
-function updateTileFavoriteButton() {
-        var button = document.getElementById("toggleTileFavoriteButton");
-        var icon = document.getElementById("tileFavoriteIcon");
-        var label = document.getElementById("tileFavoriteLabel");
+function isItemFavorite(itemId) {
+        return itemFavorites.indexOf(itemId) > -1;
+}
+
+function updateFavoriteButton() {
+        var button = document.getElementById("toggleFavoriteButton");
+        var icon = document.getElementById("favoriteIcon");
+        var label = document.getElementById("favoriteLabel");
 
         if (!button) {
                 return;
         }
 
         var isTileMode = drawing && drawing.type === TileType.Tile;
-        if (!isTileMode) {
+        var isItemMode = drawing && drawing.type === TileType.Item;
+        if (!isTileMode && !isItemMode) {
                 button.style.display = "none";
                 button.disabled = true;
                 button.setAttribute("aria-pressed", "false");
                 return;
         }
 
-        var isFavorite = isTileFavorite(drawing.id);
+        var isFavorite = isTileMode ? isTileFavorite(drawing.id) : isItemFavorite(drawing.id);
+        var drawingLabel = isTileMode
+                ? localization.GetStringOrFallback("tile_label", "tile")
+                : localization.GetStringOrFallback("item_label", "item");
 
         button.style.display = "inline-block";
         button.disabled = false;
@@ -223,34 +254,64 @@ function updateTileFavoriteButton() {
                 label.innerText = "favourite";
         }
 
-        button.title = isFavorite ? "Remove tile from favorites" : "Add tile to favorites";
+        button.title = isFavorite
+                ? "Remove " + drawingLabel + " from favorites"
+                : "Add " + drawingLabel + " to favorites";
 }
 
-function toggleTileFavorite() {
-        if (!drawing || drawing.type !== TileType.Tile) {
+function toggleFavorite() {
+        if (!drawing || (drawing.type !== TileType.Tile && drawing.type !== TileType.Item)) {
                 return;
         }
 
-        var tileId = drawing.id;
-        var isFavorite = isTileFavorite(tileId);
+        var drawingId = drawing.id;
+        var isTileMode = drawing.type === TileType.Tile;
+        var isFavorite = isTileMode ? isTileFavorite(drawingId) : isItemFavorite(drawingId);
 
         if (isFavorite) {
-                tileFavorites = tileFavorites.filter(function(id) {
-                        return id !== tileId;
+                if (isTileMode) {
+                        tileFavorites = tileFavorites.filter(function(id) {
+                                return id !== drawingId;
+                        });
+                }
+                else {
+                        itemFavorites = itemFavorites.filter(function(id) {
+                                return id !== drawingId;
+                        });
+                }
+        }
+        else {
+                if (isTileMode) {
+                        tileFavorites.push(drawingId);
+                }
+                else if (!isItemFavorite(drawingId)) {
+                        itemFavorites.push(drawingId);
+                }
+        }
+
+        if (isTileMode) {
+                saveTileFavorites();
+        }
+        else {
+                saveItemFavorites();
+        }
+
+        updateFavoriteButton();
+
+        if (isTileMode) {
+                events.Raise("tile_favorite_toggled", {
+                        tileId : drawingId,
+                        isFavorite : !isFavorite,
+                        favorites : tileFavorites.slice(0)
                 });
         }
         else {
-                tileFavorites.push(tileId);
+                events.Raise("item_favorite_toggled", {
+                        itemId : drawingId,
+                        isFavorite : !isFavorite,
+                        favorites : itemFavorites.slice(0)
+                });
         }
-
-        saveTileFavorites();
-        updateTileFavoriteButton();
-
-        events.Raise("tile_favorite_toggled", {
-                tileId : tileId,
-                isFavorite : !isFavorite,
-                favorites : tileFavorites.slice(0)
-        });
 }
 
 function selectFavoriteTile(tileId) {
@@ -265,12 +326,75 @@ function selectFavoriteTile(tileId) {
         events.Raise("select_drawing", { id: tileId, type: TileType.Tile });
 }
 
+function selectFavoriteItem(itemId) {
+        if (!item[itemId]) {
+                return;
+        }
+
+        paintTool.selectDrawing(item[itemId]);
+        on_paint_item_ui_update();
+        showPanel("paintPanel", "favoritesPanel");
+
+        events.Raise("select_drawing", { id: itemId, type: TileType.Item });
+}
+
 function getFavoriteTileName(tileId) {
         if (tile[tileId] && tile[tileId].name) {
                 return tile[tileId].name;
         }
 
         return localization.GetStringOrFallback("tile_label", "tile") + " " + tileId;
+}
+
+function getFavoriteItemName(itemId) {
+        if (item[itemId] && item[itemId].name) {
+                return item[itemId].name;
+        }
+
+        return localization.GetStringOrFallback("item_label", "item") + " " + itemId;
+}
+
+function createFavoriteKey(type, id) {
+        return type + ":" + id;
+}
+
+function parseFavoriteKey(key) {
+        if (typeof key !== "string") {
+                return null;
+        }
+
+        var separator = key.indexOf(":");
+        if (separator < 0) {
+                return null;
+        }
+
+        var type = key.substring(0, separator);
+        var id = key.substring(separator + 1);
+
+        if (!id || (type !== FavoriteType.Tile && type !== FavoriteType.Item)) {
+                return null;
+        }
+
+        return {
+                type : type,
+                id : id,
+        };
+}
+
+function getFavoriteName(favoriteInfo) {
+        if (!favoriteInfo) {
+                return "";
+        }
+
+        if (favoriteInfo.type === FavoriteType.Tile) {
+                return getFavoriteTileName(favoriteInfo.id);
+        }
+
+        if (favoriteInfo.type === FavoriteType.Item) {
+                return getFavoriteItemName(favoriteInfo.id);
+        }
+
+        return "";
 }
 
 function getValidFavoriteTiles() {
@@ -287,19 +411,68 @@ function getValidFavoriteTiles() {
         });
 }
 
-function createFavoriteTileControl(tileId) {
-        var favoriteName = getFavoriteTileName(tileId);
+function getValidFavoriteItems() {
+        var seen = {};
+
+        return itemFavorites.filter(function(id) {
+                var isValid = typeof id === "string" && item[id] && !seen[id];
+
+                if (isValid) {
+                        seen[id] = true;
+                }
+
+                return isValid;
+        });
+}
+
+function getFavoriteDrawingData() {
+        var validTileFavorites = getValidFavoriteTiles();
+        var validItemFavorites = getValidFavoriteItems();
+
+        var favoriteKeys = [];
+
+        for (var i = 0; i < validTileFavorites.length; i++) {
+                favoriteKeys.push(createFavoriteKey(FavoriteType.Tile, validTileFavorites[i]));
+        }
+
+        for (var j = 0; j < validItemFavorites.length; j++) {
+                favoriteKeys.push(createFavoriteKey(FavoriteType.Item, validItemFavorites[j]));
+        }
+
+        return {
+                tileIds : validTileFavorites,
+                itemIds : validItemFavorites,
+                keys : favoriteKeys,
+        };
+}
+
+function createFavoriteDrawingControl(favoriteKey) {
+        var favoriteInfo = parseFavoriteKey(favoriteKey);
+
+        if (!favoriteInfo) {
+                return null;
+        }
+
+        var favoriteName = getFavoriteName(favoriteInfo);
+        var renderer = favoriteInfo.type === FavoriteType.Tile
+                ? favoriteTileThumbnailRenderer
+                : favoriteItemThumbnailRenderer;
+        var icon = favoriteInfo.type === FavoriteType.Tile ? "tile" : "item";
+
         var thumbnailControl = new ThumbnailControl({
-                id: tileId,
-                renderer: favoriteTileThumbnailRenderer,
-                icon: "tile",
+                id: favoriteInfo.id,
+                renderer: renderer,
+                icon: icon,
                 text: favoriteName,
-                tooltip: favoriteName + " (" + tileId + ")",
-                isSelectedFunc: function(id) {
-                        return drawing && drawing.type === TileType.Tile && drawing.id === id;
+                tooltip: favoriteName + " (" + favoriteInfo.id + ")",
+                isSelectedFunc: function() {
+                        return drawing
+                                && ((favoriteInfo.type === FavoriteType.Tile && drawing.type === TileType.Tile)
+                                        || (favoriteInfo.type === FavoriteType.Item && drawing.type === TileType.Item))
+                                && drawing.id === favoriteInfo.id;
                 },
                 onclick: function() {
-                        selectFavoriteTile(tileId);
+                        selectFavoriteDrawing(favoriteKey);
                 },
                 renderOptions: { isAnimated: true },
         });
@@ -318,9 +491,9 @@ function createFavoriteTileControl(tileId) {
         };
 }
 
-function renderFavoriteTiles() {
-        var grid = document.getElementById("favoriteTilesGrid");
-        var emptyState = document.getElementById("favoriteTilesEmptyState");
+function renderFavoriteDrawings() {
+        var grid = document.getElementById("favoriteGrid");
+        var emptyState = document.getElementById("favoriteEmptyState");
 
         if (!grid || !emptyState) {
                 return;
@@ -330,49 +503,81 @@ function renderFavoriteTiles() {
                 favoriteTileThumbnailRenderer = createTileThumbnailRenderer();
         }
 
-        var validFavorites = getValidFavoriteTiles();
-        var needsSave = validFavorites.length !== tileFavorites.length;
+        if (!favoriteItemThumbnailRenderer) {
+                favoriteItemThumbnailRenderer = createItemThumbnailRenderer();
+        }
 
-        tileFavorites = validFavorites;
+        var favoriteData = getFavoriteDrawingData();
 
-        if (needsSave) {
+        var tileNeedsSave = favoriteData.tileIds.length !== tileFavorites.length;
+        var itemNeedsSave = favoriteData.itemIds.length !== itemFavorites.length;
+
+        tileFavorites = favoriteData.tileIds;
+        itemFavorites = favoriteData.itemIds;
+
+        if (tileNeedsSave) {
                 saveTileFavorites();
         }
 
-        grid.innerHTML = "";
-        favoriteTileControls = [];
+        if (itemNeedsSave) {
+                saveItemFavorites();
+        }
 
-        if (validFavorites.length <= 0) {
+        grid.innerHTML = "";
+        favoriteDrawingControls = [];
+
+        if (favoriteData.keys.length <= 0) {
                 emptyState.style.display = "inline-flex";
                 return;
         }
 
         emptyState.style.display = "none";
         favoriteTileThumbnailRenderer.InvalidateCache();
+        favoriteItemThumbnailRenderer.InvalidateCache();
 
-        for (var i = 0; i < validFavorites.length; i++) {
-                var tileId = validFavorites[i];
-                var favoriteTileControl = createFavoriteTileControl(tileId);
+        for (var k = 0; k < favoriteData.keys.length; k++) {
+                var favoriteControl = createFavoriteDrawingControl(favoriteData.keys[k]);
 
-                favoriteTileControls.push(favoriteTileControl);
-                grid.appendChild(favoriteTileControl.element);
-                favoriteTileControl.LoadThumbnailImage();
+                if (favoriteControl) {
+                        favoriteDrawingControls.push(favoriteControl);
+                        grid.appendChild(favoriteControl.element);
+                        favoriteControl.LoadThumbnailImage();
+                }
         }
 
-        updateFavoriteTileSelection();
+        updateFavoriteSelection();
 }
 
-function updateFavoriteTileSelection() {
-        for (var i = 0; i < favoriteTileControls.length; i++) {
-                favoriteTileControls[i].UpdateSelected();
+function updateFavoriteSelection() {
+        for (var i = 0; i < favoriteDrawingControls.length; i++) {
+                favoriteDrawingControls[i].UpdateSelected();
+        }
+}
+
+function selectFavoriteDrawing(favoriteKey) {
+        var favoriteInfo = parseFavoriteKey(favoriteKey);
+
+        if (!favoriteInfo) {
+                return;
+        }
+
+        if (favoriteInfo.type === FavoriteType.Tile) {
+                selectFavoriteTile(favoriteInfo.id);
+        }
+        else if (favoriteInfo.type === FavoriteType.Item) {
+                selectFavoriteItem(favoriteInfo.id);
         }
 }
 
 function initFavoriteTilesUI() {
-        renderFavoriteTiles();
+        renderFavoriteDrawings();
 
         events.Listen("tile_favorite_toggled", function() {
-                renderFavoriteTiles();
+                renderFavoriteDrawings();
+        });
+
+        events.Listen("item_favorite_toggled", function() {
+                renderFavoriteDrawings();
         });
 
         events.Listen("game_data_change", function() {
@@ -380,11 +585,15 @@ function initFavoriteTilesUI() {
                         favoriteTileThumbnailRenderer.InvalidateCache();
                 }
 
-                renderFavoriteTiles();
+                if (favoriteItemThumbnailRenderer) {
+                        favoriteItemThumbnailRenderer.InvalidateCache();
+                }
+
+                renderFavoriteDrawings();
         });
 
         events.Listen("select_drawing", function() {
-                updateFavoriteTileSelection();
+                updateFavoriteSelection();
         });
 }
 
@@ -1007,6 +1216,7 @@ function start() {
         });
 
         loadTileFavorites();
+        loadItemFavorites();
 
         paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
         paintTool.onReloadTile = function(){ reloadTile() };
@@ -1515,7 +1725,7 @@ function reloadTile() {
 
         updateDrawingNameUI(true);
 
-        updateTileFavoriteButton();
+        updateFavoriteButton();
 
         paintTool.updateCanvas();
 }
@@ -1574,7 +1784,7 @@ function reloadSprite() {
 
         updateDrawingNameUI( drawing.id != "A" );
 
-        updateTileFavoriteButton();
+        updateFavoriteButton();
 
         // update paint canvas
         paintTool.updateCanvas();
@@ -1595,7 +1805,7 @@ function reloadItem() {
 
         updateDrawingNameUI(true);
 
-        updateTileFavoriteButton();
+        updateFavoriteButton();
 
         // update paint canvas
         paintTool.updateCanvas();
