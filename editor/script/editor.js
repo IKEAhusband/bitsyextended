@@ -17,20 +17,8 @@ var events = new EventManager();
 var tileFavorites = [];
 var spriteFavorites = [];
 var itemFavorites = [];
-var dialogFavorites = [];
-var blipFavorites = [];
-var tuneFavorites = [];
-var FavoriteType = {
-        Tile : TileType.Tile,
-        Sprite : TileType.Sprite,
-        Item : TileType.Item,
-        Dialog : "DLG",
-        Blip : "BLIP",
-        Tune : "TUNE",
-};
 var favoriteThumbnailRenderers = {};
 var favoriteControls = [];
-var favoriteUiTypes = [FavoriteType.Tile, FavoriteType.Sprite, FavoriteType.Item];
 
 // TODO: what the heck is this helper function for?
 function defParam(param,value) {
@@ -187,97 +175,61 @@ function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
 }
 
 function getFavoriteStoreKey(type) {
-        if (type === FavoriteType.Tile) {
+        if (type === TileType.Tile) {
                 return "tile_favorites";
         }
-        else if (type === FavoriteType.Sprite) {
+        else if (type === TileType.Sprite) {
                 return "sprite_favorites";
         }
-        else if (type === FavoriteType.Item) {
+        else if (type === TileType.Item) {
                 return "item_favorites";
-        }
-        else if (type === FavoriteType.Dialog) {
-                return "dialog_favorites";
-        }
-        else if (type === FavoriteType.Blip) {
-                return "blip_favorites";
-        }
-        else if (type === FavoriteType.Tune) {
-                return "tune_favorites";
         }
 
         return null;
 }
 
 function getFavoriteList(type) {
-        if (type === FavoriteType.Tile) {
+        if (type === TileType.Tile) {
                 return tileFavorites;
         }
-        else if (type === FavoriteType.Sprite) {
+        else if (type === TileType.Sprite) {
                 return spriteFavorites;
         }
-        else if (type === FavoriteType.Item) {
+        else if (type === TileType.Item) {
                 return itemFavorites;
-        }
-        else if (type === FavoriteType.Dialog) {
-                return dialogFavorites;
-        }
-        else if (type === FavoriteType.Blip) {
-                return blipFavorites;
-        }
-        else if (type === FavoriteType.Tune) {
-                return tuneFavorites;
         }
 
         return null;
 }
 
 function setFavoriteList(type, favorites) {
-        if (type === FavoriteType.Tile) {
+        if (type === TileType.Tile) {
                 tileFavorites = favorites;
         }
-        else if (type === FavoriteType.Sprite) {
+        else if (type === TileType.Sprite) {
                 spriteFavorites = favorites;
         }
-        else if (type === FavoriteType.Item) {
+        else if (type === TileType.Item) {
                 itemFavorites = favorites;
-        }
-        else if (type === FavoriteType.Dialog) {
-                dialogFavorites = favorites;
-        }
-        else if (type === FavoriteType.Blip) {
-                blipFavorites = favorites;
-        }
-        else if (type === FavoriteType.Tune) {
-                tuneFavorites = favorites;
         }
 }
 
 function getFavoriteDrawingCollection(type) {
-        if (type === FavoriteType.Tile) {
+        if (type === TileType.Tile) {
                 return tile;
         }
-        else if (type === FavoriteType.Sprite) {
+        else if (type === TileType.Sprite) {
                 return sprite;
         }
-        else if (type === FavoriteType.Item) {
+        else if (type === TileType.Item) {
                 return item;
-        }
-        else if (type === FavoriteType.Dialog) {
-                return dialog;
-        }
-        else if (type === FavoriteType.Blip) {
-                return blip;
-        }
-        else if (type === FavoriteType.Tune) {
-                return tune;
         }
 
         return null;
 }
 
 function isFavoriteSupportedType(type) {
-        return favoriteUiTypes.indexOf(type) > -1;
+        return type === TileType.Tile || type === TileType.Sprite || type === TileType.Item;
 }
 
 function loadFavoritesForType(type) {
@@ -298,12 +250,9 @@ function loadFavoritesForType(type) {
 }
 
 function loadFavoriteDrawings() {
-        loadFavoritesForType(FavoriteType.Tile);
-        loadFavoritesForType(FavoriteType.Sprite);
-        loadFavoritesForType(FavoriteType.Item);
-        loadFavoritesForType(FavoriteType.Dialog);
-        loadFavoritesForType(FavoriteType.Blip);
-        loadFavoritesForType(FavoriteType.Tune);
+        loadFavoritesForType(TileType.Tile);
+        loadFavoritesForType(TileType.Sprite);
+        loadFavoritesForType(TileType.Item);
 }
 
 function saveFavoritesForType(type) {
@@ -493,9 +442,10 @@ function getValidFavoritesForType(type) {
 
 function getValidFavoriteDrawings() {
         var favoriteList = [];
+        var favoriteTypes = [TileType.Tile, TileType.Sprite, TileType.Item];
 
-        for (var i = 0; i < favoriteUiTypes.length; i++) {
-                var type = favoriteUiTypes[i];
+        for (var i = 0; i < favoriteTypes.length; i++) {
+                var type = favoriteTypes[i];
                 var validFavorites = getValidFavoritesForType(type);
 
                 for (var j = 0; j < validFavorites.length; j++) {
