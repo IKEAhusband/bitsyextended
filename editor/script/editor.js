@@ -18,12 +18,8 @@ var tileFavorites = [];
 var itemFavorites = [];
 var favoriteTileThumbnailRenderer = null;
 var favoriteItemThumbnailRenderer = null;
-var favoriteDrawingControls = [];
-
-var FavoriteType = {
-        Tile: "tile",
-        Item: "item",
-};
+var favoriteTileControls = [];
+var favoriteItemControls = [];
 
 // TODO: what the heck is this helper function for?
 function defParam(param,value) {
@@ -354,49 +350,6 @@ function getFavoriteItemName(itemId) {
         return localization.GetStringOrFallback("item_label", "item") + " " + itemId;
 }
 
-function createFavoriteKey(type, id) {
-        return type + ":" + id;
-}
-
-function parseFavoriteKey(key) {
-        if (typeof key !== "string") {
-                return null;
-        }
-
-        var separator = key.indexOf(":");
-        if (separator < 0) {
-                return null;
-        }
-
-        var type = key.substring(0, separator);
-        var id = key.substring(separator + 1);
-
-        if (!id || (type !== FavoriteType.Tile && type !== FavoriteType.Item)) {
-                return null;
-        }
-
-        return {
-                type : type,
-                id : id,
-        };
-}
-
-function getFavoriteName(favoriteInfo) {
-        if (!favoriteInfo) {
-                return "";
-        }
-
-        if (favoriteInfo.type === FavoriteType.Tile) {
-                return getFavoriteTileName(favoriteInfo.id);
-        }
-
-        if (favoriteInfo.type === FavoriteType.Item) {
-                return getFavoriteItemName(favoriteInfo.id);
-        }
-
-        return "";
-}
-
 function getValidFavoriteTiles() {
         var seen = {};
 
@@ -425,40 +378,8 @@ function getValidFavoriteItems() {
         });
 }
 
-function getFavoriteDrawingData() {
-        var validTileFavorites = getValidFavoriteTiles();
-        var validItemFavorites = getValidFavoriteItems();
-
-        var favoriteKeys = [];
-
-        for (var j = 0; j < validItemFavorites.length; j++) {
-                favoriteKeys.push(createFavoriteKey(FavoriteType.Item, validItemFavorites[j]));
-        }
-
-        for (var i = 0; i < validTileFavorites.length; i++) {
-                favoriteKeys.push(createFavoriteKey(FavoriteType.Tile, validTileFavorites[i]));
-        }
-
-        return {
-                tileIds : validTileFavorites,
-                itemIds : validItemFavorites,
-                keys : favoriteKeys,
-        };
-}
-
-function createFavoriteDrawingControl(favoriteKey) {
-        var favoriteInfo = parseFavoriteKey(favoriteKey);
-
-        if (!favoriteInfo) {
-                return null;
-        }
-
-        var favoriteName = getFavoriteName(favoriteInfo);
-        var renderer = favoriteInfo.type === FavoriteType.Tile
-                ? favoriteTileThumbnailRenderer
-                : favoriteItemThumbnailRenderer;
-        var icon = favoriteInfo.type === FavoriteType.Tile ? "tile" : "item";
-
+function createFavoriteTileControl(tileId) {
+        var favoriteName = getFavoriteTileName(tileId);
         var thumbnailControl = new ThumbnailControl({
                 id: favoriteInfo.id,
                 renderer: renderer,
@@ -491,9 +412,40 @@ function createFavoriteDrawingControl(favoriteKey) {
         };
 }
 
-function renderFavoriteDrawings() {
-        var grid = document.getElementById("favoriteGrid");
-        var emptyState = document.getElementById("favoriteEmptyState");
+function createFavoriteItemControl(itemId) {
+        var favoriteName = getFavoriteItemName(itemId);
+        var thumbnailControl = new ThumbnailControl({
+                id: itemId,
+                renderer: favoriteItemThumbnailRenderer,
+                icon: "item",
+                text: favoriteName,
+                tooltip: favoriteName + " (" + itemId + ")",
+                isSelectedFunc: function(id) {
+                        return drawing && drawing.type === TileType.Item && drawing.id === id;
+                },
+                onclick: function() {
+                        selectFavoriteItem(itemId);
+                },
+                renderOptions: { isAnimated: true },
+        });
+
+        var element = thumbnailControl.GetElement();
+        element.classList.add("favorite-tile");
+
+        return {
+                element: element,
+                LoadThumbnailImage: function() {
+                        thumbnailControl.LoadThumbnailImage();
+                },
+                UpdateSelected: function() {
+                        thumbnailControl.UpdateSelected();
+                },
+        };
+}
+
+function renderFavoriteTiles() {
+        var grid = document.getElementById("favoriteTilesGrid");
+        var emptyState = document.getElementById("favoriteTilesEmptyState");
 
         if (!grid || !emptyState) {
                 return;
@@ -548,29 +500,65 @@ function renderFavoriteDrawings() {
         updateFavoriteSelection();
 }
 
-function updateFavoriteSelection() {
-        for (var i = 0; i < favoriteDrawingControls.length; i++) {
-                favoriteDrawingControls[i].UpdateSelected();
-        }
-}
+function renderFavoriteItems() {
+        var grid = document.getElementById("favoriteItemsGrid");
+        var emptyState = document.getElementById("favoriteItemsEmptyState");
 
-function selectFavoriteDrawing(favoriteKey) {
-        var favoriteInfo = parseFavoriteKey(favoriteKey);
-
-        if (!favoriteInfo) {
+        if (!grid || !emptyState) {
                 return;
         }
 
-        if (favoriteInfo.type === FavoriteType.Tile) {
-                selectFavoriteTile(favoriteInfo.id);
+        if (!favoriteItemThumbnailRenderer) {
+                favoriteItemThumbnailRenderer = createItemThumbnailRenderer();
         }
-        else if (favoriteInfo.type === FavoriteType.Item) {
-                selectFavoriteItem(favoriteInfo.id);
+
+        var validFavorites = getValidFavoriteItems();
+        var needsSave = validFavorites.length !== itemFavorites.length;
+
+        itemFavorites = validFavorites;
+
+        if (needsSave) {
+                saveItemFavorites();
+        }
+
+        grid.innerHTML = "";
+        favoriteItemControls = [];
+
+        if (validFavorites.length <= 0) {
+                emptyState.style.display = "inline-flex";
+                return;
+        }
+
+        emptyState.style.display = "none";
+        favoriteItemThumbnailRenderer.InvalidateCache();
+
+        for (var i = 0; i < validFavorites.length; i++) {
+                var itemId = validFavorites[i];
+                var favoriteItemControl = createFavoriteItemControl(itemId);
+
+                favoriteItemControls.push(favoriteItemControl);
+                grid.appendChild(favoriteItemControl.element);
+                favoriteItemControl.LoadThumbnailImage();
+        }
+
+        updateFavoriteItemSelection();
+}
+
+function updateFavoriteTileSelection() {
+        for (var i = 0; i < favoriteTileControls.length; i++) {
+                favoriteTileControls[i].UpdateSelected();
+        }
+}
+
+function updateFavoriteItemSelection() {
+        for (var i = 0; i < favoriteItemControls.length; i++) {
+                favoriteItemControls[i].UpdateSelected();
         }
 }
 
 function initFavoriteTilesUI() {
-        renderFavoriteDrawings();
+        renderFavoriteTiles();
+        renderFavoriteItems();
 
         events.Listen("tile_favorite_toggled", function() {
                 renderFavoriteDrawings();
@@ -578,6 +566,10 @@ function initFavoriteTilesUI() {
 
         events.Listen("item_favorite_toggled", function() {
                 renderFavoriteDrawings();
+        });
+
+        events.Listen("item_favorite_toggled", function() {
+                renderFavoriteItems();
         });
 
         events.Listen("game_data_change", function() {
@@ -589,11 +581,13 @@ function initFavoriteTilesUI() {
                         favoriteItemThumbnailRenderer.InvalidateCache();
                 }
 
-                renderFavoriteDrawings();
+                renderFavoriteTiles();
+                renderFavoriteItems();
         });
 
         events.Listen("select_drawing", function() {
-                updateFavoriteSelection();
+                updateFavoriteTileSelection();
+                updateFavoriteItemSelection();
         });
 }
 
