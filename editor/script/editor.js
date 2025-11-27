@@ -1157,12 +1157,14 @@ function start() {
 		iconUtils.LoadIconAnimated(elements[i]);
 	}
 
-	// localization
-	localization = new Localization(urlParameters["lang"]);
-	Store.init(function () {
-		// TODO: localize
-		window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
-	});
+        // localization
+        localization = new Localization(urlParameters["lang"]);
+        Store.init(function () {
+                // TODO: localize
+                window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
+        });
+
+        loadDrawingFavorites();
 
 	paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
 	paintTool.onReloadTile = function(){ reloadTile() };
@@ -1293,10 +1295,12 @@ function start() {
 	openDialogTool(titleDialogId, undefined, false); // start with the title open
 	alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked;
 
-	// find tool
-	findTool = new FindTool({
-		mainElement : document.getElementById("findPanelMain"),
-	});
+        // find tool
+        findTool = new FindTool({
+                mainElement : document.getElementById("findPanelMain"),
+        });
+
+        initFavoriteDrawingsUI();
 
 	// hack: reload drawing after find tool is created, so the blip dropdown is up-to-date
 	paintTool.reloadDrawing();
@@ -1320,6 +1324,14 @@ function start() {
 
 	// game tool
 	gameTool = makeGameTool();
+
+	// favorites UI (call after core tools so a favorites hiccup can't block the main UI)
+	try {
+		initFavoriteDrawingsUI();
+	}
+	catch (e) {
+		console.error("Failed to initialize favourites UI", e);
+	}
 
 	// load panel preferences
 	var prefs = getPanelPrefs();
