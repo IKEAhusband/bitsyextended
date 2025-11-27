@@ -1477,11 +1477,107 @@ function clearDrawingFrames(frames) {
         return clearedFrames;
 }
 
+function nudgeFrame(frameData, direction) {
+        var size = frameData.length;
+        var nudgedFrame = [];
+        var offsets = {
+                left: { x: -1, y: 0 },
+                right: { x: 1, y: 0 },
+                up: { x: 0, y: -1 },
+                down: { x: 0, y: 1 },
+        };
+
+        var offset = offsets[direction] || offsets.left;
+
+        for (var y = 0; y < size; y++) {
+                nudgedFrame.push([]);
+                for (var x = 0; x < size; x++) {
+                        nudgedFrame[y].push(0);
+                }
+        }
+
+        for (var y = 0; y < size; y++) {
+                for (var x = 0; x < size; x++) {
+                        var newY = y + offset.y;
+                        var newX = x + offset.x;
+
+                        if (newY >= 0 && newY < size && newX >= 0 && newX < size) {
+                                nudgedFrame[newY][newX] = frameData[y][x];
+                        }
+                }
+        }
+
+        return nudgedFrame;
+}
+
+function nudgeDrawingFrames(frames, direction) {
+        var nudgedFrames = [];
+
+        for (var i = 0; i < frames.length; i++) {
+                nudgedFrames.push(nudgeFrame(frames[i], direction));
+        }
+
+        return nudgedFrames;
+}
+
+function mirrorFrame(frameData, direction) {
+        var size = frameData.length;
+        var mirroredFrame = [];
+        var half = Math.floor(size / 2);
+
+        for (var y = 0; y < size; y++) {
+                mirroredFrame.push(frameData[y].slice());
+        }
+
+        if (direction === "right") {
+                for (var y = 0; y < size; y++) {
+                        for (var x = half; x < size; x++) {
+                                mirroredFrame[y][x] = frameData[y][size - 1 - x];
+                        }
+                }
+        }
+        else if (direction === "up") {
+                for (var y = 0; y < half; y++) {
+                        for (var x = 0; x < size; x++) {
+                                mirroredFrame[y][x] = frameData[size - 1 - y][x];
+                        }
+                }
+        }
+        else if (direction === "down") {
+                for (var y = half; y < size; y++) {
+                        for (var x = 0; x < size; x++) {
+                                mirroredFrame[y][x] = frameData[size - 1 - y][x];
+                        }
+                }
+        }
+        else {
+                for (var y = 0; y < size; y++) {
+                        for (var x = 0; x < half; x++) {
+                                mirroredFrame[y][x] = frameData[y][size - 1 - x];
+                        }
+                }
+        }
+
+        return mirroredFrame;
+}
+
+function mirrorDrawingFrames(frames, direction) {
+        var mirroredFrames = [];
+
+        for (var i = 0; i < frames.length; i++) {
+                mirroredFrames.push(mirrorFrame(frames[i], direction));
+        }
+
+        return mirroredFrames;
+}
+
 var paintHistory = {
-	key: null,
-	states: [],
-	index: -1,
+        key: null,
+        states: [],
+        index: -1,
 };
+
+var paintDirection = "left";
 
 function getPaintHistoryKey(drawingData) {
 	if (!drawingData) {
@@ -1506,8 +1602,11 @@ function updatePaintUndoRedoButtons() {
         var rotateButton = document.getElementById("paintRotateButton");
         var invertButton = document.getElementById("paintInvertButton");
         var clearButton = document.getElementById("paintClearButton");
+        var nudgeButton = document.getElementById("paintNudgeButton");
+        var mirrorButton = document.getElementById("paintMirrorButton");
+        var directionInputs = document.getElementsByName("paintDirection");
 
-        if (!undoButton || !redoButton || !rotateButton || !invertButton || !clearButton) {
+        if (!undoButton || !redoButton || !rotateButton || !invertButton || !clearButton || !nudgeButton || !mirrorButton) {
                 return;
         }
 
@@ -1517,12 +1616,19 @@ function updatePaintUndoRedoButtons() {
         var canRotate = keyMatches;
         var canInvert = keyMatches;
         var canClear = keyMatches;
+        var canUseDirectionalTools = keyMatches;
 
         undoButton.disabled = !canUndo;
         redoButton.disabled = !canRedo;
         rotateButton.disabled = !canRotate;
         invertButton.disabled = !canInvert;
         clearButton.disabled = !canClear;
+        nudgeButton.disabled = !canUseDirectionalTools;
+        mirrorButton.disabled = !canUseDirectionalTools;
+
+        for (var i = 0; i < directionInputs.length; i++) {
+                directionInputs[i].disabled = !canUseDirectionalTools;
+        }
 }
 
 function resetPaintHistoryForDrawing(drawingData) {
@@ -1632,6 +1738,23 @@ function redoPaintEdit() {
         applyPaintHistoryState();
 }
 
+function onPaintDirectionChange(event) {
+        if (event && event.target && event.target.value) {
+                paintDirection = event.target.value;
+        }
+}
+
+function getSelectedPaintDirection() {
+        var selectedDirection = document.querySelector("input[name='paintDirection']:checked");
+
+        if (selectedDirection) {
+                paintDirection = selectedDirection.value;
+                return selectedDirection.value;
+        }
+
+        return paintDirection;
+}
+
 function rotatePaintEdit() {
         var historyKey = getPaintHistoryKey(drawing);
 
@@ -1652,6 +1775,27 @@ function rotatePaintEdit() {
         events.Raise("paint_edit");
 }
 
+function nudgePaintEdit() {
+        var historyKey = getPaintHistoryKey(drawing);
+
+        if (!historyKey) {
+                return;
+        }
+
+        var drawingFrames = getDrawingImageSource(drawing);
+
+        if (!drawingFrames || drawingFrames.length <= 0) {
+                return;
+        }
+
+        var direction = getSelectedPaintDirection();
+        var nudgedFrames = nudgeDrawingFrames(drawingFrames, direction);
+
+        applyDrawingFrameChanges(nudgedFrames);
+
+        events.Raise("paint_edit");
+}
+
 function invertPaintEdit() {
         var historyKey = getPaintHistoryKey(drawing);
 
@@ -1668,6 +1812,27 @@ function invertPaintEdit() {
         var invertedFrames = invertDrawingFrames(drawingFrames);
 
         applyDrawingFrameChanges(invertedFrames);
+
+        events.Raise("paint_edit");
+}
+
+function mirrorPaintEdit() {
+        var historyKey = getPaintHistoryKey(drawing);
+
+        if (!historyKey) {
+                return;
+        }
+
+        var drawingFrames = getDrawingImageSource(drawing);
+
+        if (!drawingFrames || drawingFrames.length <= 0) {
+                return;
+        }
+
+        var direction = getSelectedPaintDirection();
+        var mirroredFrames = mirrorDrawingFrames(drawingFrames, direction);
+
+        applyDrawingFrameChanges(mirroredFrames);
 
         events.Raise("paint_edit");
 }

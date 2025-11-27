@@ -111,14 +111,47 @@ margin-left: var(--bitsy-space-xxs);
 }
 
 #paintColorSelect {
-	min-width: 14em;
+        min-width: 14em;
+}
+
+.paint-direction-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--bitsy-space-xxs);
+        padding: 0 var(--bitsy-space-xxs);
+        border-radius: var(--bitsy-radius-s);
+}
+
+.paint-direction-controls label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--bitsy-space-xxs);
+        border: 1px solid var(--bitsy-color-foreground);
+        border-radius: var(--bitsy-radius-s);
+        min-width: 2em;
+        cursor: pointer;
+}
+
+.paint-direction-controls input[type=radio]:checked + label {
+        background: var(--bitsy-color-main-2);
+        color: var(--bitsy-color-background);
+}
+
+.paint-direction-controls input[type=radio]:disabled + label {
+        opacity: 0.5;
+        cursor: not-allowed;
+}
+
+.paint-direction-controls .bitsy_icon {
+        margin: 0;
 }
 
 #animationFrameStrip {
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	gap: var(--bitsy-space-s);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--bitsy-space-s);
 	width: 100%;
 	max-width: 100%;
 }
