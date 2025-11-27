@@ -478,17 +478,8 @@ function FindTool(options) {
                 UpdateSelectedItems();
         });
 
-        events.Listen("drawing_favorite_toggled", function(event) {
-                if (event && event.drawingType === TileType.Sprite) {
-                        spriteThumbnailRenderer.InvalidateCache();
-                }
-                else if (event && event.drawingType === TileType.Item) {
-                        itemThumbnailRenderer.InvalidateCache();
-                }
-                else {
-                        tileThumbnailRenderer.InvalidateCache();
-                }
-
+        events.Listen("tile_favorite_toggled", function(event) {
+                tileThumbnailRenderer.InvalidateCache();
                 GenerateItems();
         });
 
