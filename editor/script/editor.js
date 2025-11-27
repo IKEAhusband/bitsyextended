@@ -15,10 +15,8 @@ var events = new EventManager();
 
 /* FAVORITES */
 var tileFavorites = [];
-var spriteFavorites = [];
-var itemFavorites = [];
-var favoriteThumbnailRenderers = {};
-var favoriteControls = [];
+var favoriteTileThumbnailRenderer = null;
+var favoriteTileControls = [];
 
 // TODO: what the heck is this helper function for?
 function defParam(param,value) {
@@ -174,104 +172,44 @@ function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
         }
 }
 
-function getFavoritesForType(drawingType) {
-        if (drawingType === TileType.Tile) {
-                return tileFavorites;
-        }
-        else if (drawingType === TileType.Sprite) {
-                return spriteFavorites;
-        }
-        else if (drawingType === TileType.Item) {
-                return itemFavorites;
-        }
-
-        return null;
-}
-
-function setFavoritesForType(drawingType, favorites) {
-        if (drawingType === TileType.Tile) {
-                tileFavorites = favorites;
-        }
-        else if (drawingType === TileType.Sprite) {
-                spriteFavorites = favorites;
-        }
-        else if (drawingType === TileType.Item) {
-                itemFavorites = favorites;
-        }
-}
-
-function getFavoriteStoreKey(drawingType) {
-        if (drawingType === TileType.Tile) {
-                return "tile_favorites";
-        }
-        else if (drawingType === TileType.Sprite) {
-                return "sprite_favorites";
-        }
-        else if (drawingType === TileType.Item) {
-                return "item_favorites";
-        }
-
-        return null;
-}
-
-function loadFavoritesForType(drawingType) {
-        var storeKey = getFavoriteStoreKey(drawingType);
-        if (!storeKey) {
-                return;
-        }
-
-        var storedFavorites = Store.get(storeKey, []);
+function loadTileFavorites() {
+        var storedFavorites = Store.get("tile_favorites", []);
 
         if (!Array.isArray(storedFavorites)) {
                 storedFavorites = [];
         }
 
-        setFavoritesForType(drawingType, storedFavorites.filter(function(id) {
+        tileFavorites = storedFavorites.filter(function(id) {
                 return typeof id === "string";
-        }));
+        });
 }
 
-function loadDrawingFavorites() {
-        loadFavoritesForType(TileType.Tile);
-        loadFavoritesForType(TileType.Sprite);
-        loadFavoritesForType(TileType.Item);
+function saveTileFavorites() {
+        Store.set("tile_favorites", tileFavorites);
 }
 
-function saveFavoritesForType(drawingType) {
-        var storeKey = getFavoriteStoreKey(drawingType);
-        var favorites = getFavoritesForType(drawingType);
-
-        if (!storeKey || !favorites) {
-                return;
-        }
-
-        Store.set(storeKey, favorites);
+function isTileFavorite(tileId) {
+        return tileFavorites.indexOf(tileId) > -1;
 }
 
-function isDrawingFavorite(drawingType, drawingId) {
-        var favorites = getFavoritesForType(drawingType);
-
-        return favorites ? favorites.indexOf(drawingId) > -1 : false;
-}
-
-function updateFavoriteButton() {
-        var button = document.getElementById("toggleFavoriteButton");
-        var icon = document.getElementById("favoriteIcon");
-        var label = document.getElementById("favoriteLabel");
+function updateTileFavoriteButton() {
+        var button = document.getElementById("toggleTileFavoriteButton");
+        var icon = document.getElementById("tileFavoriteIcon");
+        var label = document.getElementById("tileFavoriteLabel");
 
         if (!button) {
                 return;
         }
 
-        var isDrawingFavoriteType = drawing && (drawing.type === TileType.Tile || drawing.type === TileType.Sprite || drawing.type === TileType.Item);
-        if (!isDrawingFavoriteType) {
+        var isTileMode = drawing && drawing.type === TileType.Tile;
+        if (!isTileMode) {
                 button.style.display = "none";
                 button.disabled = true;
                 button.setAttribute("aria-pressed", "false");
                 return;
         }
 
-        var isFavorite = isDrawingFavorite(drawing.type, drawing.id);
+        var isFavorite = isTileFavorite(drawing.id);
 
         button.style.display = "inline-block";
         button.disabled = false;
@@ -285,118 +223,61 @@ function updateFavoriteButton() {
                 label.innerText = "favourite";
         }
 
-        var drawingTypeName = tileTypeToString(drawing.type);
-        button.title = isFavorite ? "Remove " + drawingTypeName + " from favorites" : "Add " + drawingTypeName + " to favorites";
+        button.title = isFavorite ? "Remove tile from favorites" : "Add tile to favorites";
 }
 
-function toggleDrawingFavorite() {
-        if (!drawing || drawing.type === TileType.Avatar) {
+function toggleTileFavorite() {
+        if (!drawing || drawing.type !== TileType.Tile) {
                 return;
         }
 
-        var favorites = getFavoritesForType(drawing.type);
-        if (!favorites) {
-                return;
-        }
-
-        var drawingId = drawing.id;
-        var isFavorite = isDrawingFavorite(drawing.type, drawingId);
-        var updatedFavorites = favorites;
+        var tileId = drawing.id;
+        var isFavorite = isTileFavorite(tileId);
 
         if (isFavorite) {
-                updatedFavorites = favorites.filter(function(id) {
-                        return id !== drawingId;
+                tileFavorites = tileFavorites.filter(function(id) {
+                        return id !== tileId;
                 });
         }
         else {
-                updatedFavorites = favorites.concat([drawingId]);
+                tileFavorites.push(tileId);
         }
 
-        setFavoritesForType(drawing.type, updatedFavorites);
+        saveTileFavorites();
+        updateTileFavoriteButton();
 
-        saveFavoritesForType(drawing.type);
-        updateFavoriteButton();
-
-        var favoriteEventData = {
-                drawingType : drawing.type,
-                drawingId : drawingId,
+        events.Raise("tile_favorite_toggled", {
+                tileId : tileId,
                 isFavorite : !isFavorite,
-                favorites : updatedFavorites.slice(0)
-        };
-
-        events.Raise("drawing_favorite_toggled", favoriteEventData);
-
-        if (drawing.type === TileType.Tile) {
-                events.Raise("tile_favorite_toggled", favoriteEventData);
-        }
+                favorites : tileFavorites.slice(0)
+        });
 }
 
-function selectFavoriteDrawing(favorite) {
-        if (!favorite || !favorite.id) {
+function selectFavoriteTile(tileId) {
+        if (!tile[tileId]) {
                 return;
         }
 
-        if (favorite.type === TileType.Tile && tile[favorite.id]) {
-                paintTool.selectDrawing(tile[favorite.id]);
-                on_paint_tile_ui_update();
-                showPanel("paintPanel", "favoritesPanel");
-        }
-        else if (favorite.type === TileType.Sprite && sprite[favorite.id]) {
-                paintTool.selectDrawing(sprite[favorite.id]);
-                on_paint_sprite_ui_update();
-                showPanel("paintPanel", "favoritesPanel");
-        }
-        else if (favorite.type === TileType.Item && item[favorite.id]) {
-                paintTool.selectDrawing(item[favorite.id]);
-                on_paint_item_ui_update();
-                showPanel("paintPanel", "favoritesPanel");
-        }
-        else {
-                return;
-        }
+        paintTool.selectDrawing(tile[tileId]);
+        on_paint_tile_ui_update();
+        showPanel("paintPanel", "favoritesPanel");
 
-        events.Raise("select_drawing", { id: favorite.id, type: favorite.type });
+        events.Raise("select_drawing", { id: tileId, type: TileType.Tile });
 }
 
-function getFavoriteDrawingName(favorite) {
-        if (!favorite || !favorite.id) {
-                return "";
+function getFavoriteTileName(tileId) {
+        if (tile[tileId] && tile[tileId].name) {
+                return tile[tileId].name;
         }
 
-        if (favorite.type === TileType.Tile && tile[favorite.id] && tile[favorite.id].name) {
-                return tile[favorite.id].name;
-        }
-        else if (favorite.type === TileType.Sprite && sprite[favorite.id] && sprite[favorite.id].name) {
-                return sprite[favorite.id].name;
-        }
-        else if (favorite.type === TileType.Item && item[favorite.id] && item[favorite.id].name) {
-                return item[favorite.id].name;
-        }
-
-        return tileTypeToString(favorite.type) + " " + favorite.id;
+        return localization.GetStringOrFallback("tile_label", "tile") + " " + tileId;
 }
 
-function getDrawingCollectionForType(drawingType) {
-        if (drawingType === TileType.Tile) {
-                return tile;
-        }
-        else if (drawingType === TileType.Sprite) {
-                return sprite;
-        }
-        else if (drawingType === TileType.Item) {
-                return item;
-        }
-
-        return {};
-}
-
-function getValidFavoritesForType(drawingType) {
-        var favorites = getFavoritesForType(drawingType) || [];
-        var collection = getDrawingCollectionForType(drawingType);
+function getValidFavoriteTiles() {
         var seen = {};
 
-        var validFavorites = favorites.filter(function(id) {
-                var isValid = typeof id === "string" && collection[id] && !seen[id];
+        return tileFavorites.filter(function(id) {
+                var isValid = typeof id === "string" && tile[id] && !seen[id];
 
                 if (isValid) {
                         seen[id] = true;
@@ -404,68 +285,21 @@ function getValidFavoritesForType(drawingType) {
 
                 return isValid;
         });
-
-        var needsSave = validFavorites.length !== favorites.length;
-        if (needsSave) {
-                setFavoritesForType(drawingType, validFavorites);
-                saveFavoritesForType(drawingType);
-        }
-
-        return validFavorites;
 }
 
-function getFavoriteDrawings() {
-        var favoriteDrawings = [];
-
-        var tileFavoritesList = getValidFavoritesForType(TileType.Tile);
-        for (var i = 0; i < tileFavoritesList.length; i++) {
-                favoriteDrawings.push({ type: TileType.Tile, id: tileFavoritesList[i] });
-        }
-
-        var spriteFavoritesList = getValidFavoritesForType(TileType.Sprite);
-        for (var i = 0; i < spriteFavoritesList.length; i++) {
-                favoriteDrawings.push({ type: TileType.Sprite, id: spriteFavoritesList[i] });
-        }
-
-        var itemFavoritesList = getValidFavoritesForType(TileType.Item);
-        for (var i = 0; i < itemFavoritesList.length; i++) {
-                favoriteDrawings.push({ type: TileType.Item, id: itemFavoritesList[i] });
-        }
-
-        return favoriteDrawings;
-}
-
-function getFavoriteThumbnailRenderer(drawingType) {
-        if (!favoriteThumbnailRenderers[drawingType]) {
-                if (drawingType === TileType.Tile) {
-                        favoriteThumbnailRenderers[drawingType] = createTileThumbnailRenderer();
-                }
-                else if (drawingType === TileType.Sprite) {
-                        favoriteThumbnailRenderers[drawingType] = createSpriteThumbnailRenderer();
-                }
-                else if (drawingType === TileType.Item) {
-                        favoriteThumbnailRenderers[drawingType] = createItemThumbnailRenderer();
-                }
-        }
-
-        return favoriteThumbnailRenderers[drawingType];
-}
-
-function createFavoriteControl(favorite) {
-        var favoriteName = getFavoriteDrawingName(favorite);
-        var renderer = getFavoriteThumbnailRenderer(favorite.type);
-
+function createFavoriteTileControl(tileId) {
+        var favoriteName = getFavoriteTileName(tileId);
         var thumbnailControl = new ThumbnailControl({
-                id: favorite.id,
-                renderer: renderer,
-                icon: tileTypeToString(favorite.type),
+                id: tileId,
+                renderer: favoriteTileThumbnailRenderer,
+                icon: "tile",
                 text: favoriteName,
-                tooltip: favoriteName + " (" + favorite.id + ")",
+                tooltip: favoriteName + " (" + tileId + ")",
                 isSelectedFunc: function(id) {
-                        return drawing && drawing.type === favorite.type && drawing.id === id;
+                        return drawing && drawing.type === TileType.Tile && drawing.id === id;
                 },
                 onclick: function() {
-                        selectFavoriteDrawing(favorite);
+                        selectFavoriteTile(tileId);
                 },
                 renderOptions: { isAnimated: true },
         });
@@ -484,7 +318,7 @@ function createFavoriteControl(favorite) {
         };
 }
 
-function renderFavoriteDrawings() {
+function renderFavoriteTiles() {
         var grid = document.getElementById("favoriteTilesGrid");
         var emptyState = document.getElementById("favoriteTilesEmptyState");
 
@@ -492,57 +326,65 @@ function renderFavoriteDrawings() {
                 return;
         }
 
-        var favorites = getFavoriteDrawings();
+        if (!favoriteTileThumbnailRenderer) {
+                favoriteTileThumbnailRenderer = createTileThumbnailRenderer();
+        }
+
+        var validFavorites = getValidFavoriteTiles();
+        var needsSave = validFavorites.length !== tileFavorites.length;
+
+        tileFavorites = validFavorites;
+
+        if (needsSave) {
+                saveTileFavorites();
+        }
 
         grid.innerHTML = "";
-        favoriteControls = [];
+        favoriteTileControls = [];
 
-        if (favorites.length <= 0) {
+        if (validFavorites.length <= 0) {
                 emptyState.style.display = "inline-flex";
                 return;
         }
 
         emptyState.style.display = "none";
+        favoriteTileThumbnailRenderer.InvalidateCache();
 
-        Object.keys(favoriteThumbnailRenderers).forEach(function(type) {
-                favoriteThumbnailRenderers[type].InvalidateCache();
-        });
+        for (var i = 0; i < validFavorites.length; i++) {
+                var tileId = validFavorites[i];
+                var favoriteTileControl = createFavoriteTileControl(tileId);
 
-        for (var i = 0; i < favorites.length; i++) {
-                var favorite = favorites[i];
-                var favoriteControl = createFavoriteControl(favorite);
-
-                favoriteControls.push(favoriteControl);
-                grid.appendChild(favoriteControl.element);
-                favoriteControl.LoadThumbnailImage();
+                favoriteTileControls.push(favoriteTileControl);
+                grid.appendChild(favoriteTileControl.element);
+                favoriteTileControl.LoadThumbnailImage();
         }
 
-        updateFavoriteSelection();
+        updateFavoriteTileSelection();
 }
 
-function updateFavoriteSelection() {
-        for (var i = 0; i < favoriteControls.length; i++) {
-                favoriteControls[i].UpdateSelected();
+function updateFavoriteTileSelection() {
+        for (var i = 0; i < favoriteTileControls.length; i++) {
+                favoriteTileControls[i].UpdateSelected();
         }
 }
 
-function initFavoriteDrawingsUI() {
-        renderFavoriteDrawings();
+function initFavoriteTilesUI() {
+        renderFavoriteTiles();
 
-        events.Listen("drawing_favorite_toggled", function() {
-                renderFavoriteDrawings();
+        events.Listen("tile_favorite_toggled", function() {
+                renderFavoriteTiles();
         });
 
         events.Listen("game_data_change", function() {
-                Object.keys(favoriteThumbnailRenderers).forEach(function(type) {
-                        favoriteThumbnailRenderers[type].InvalidateCache();
-                });
+                if (favoriteTileThumbnailRenderer) {
+                        favoriteTileThumbnailRenderer.InvalidateCache();
+                }
 
-                renderFavoriteDrawings();
+                renderFavoriteTiles();
         });
 
         events.Listen("select_drawing", function() {
-                updateFavoriteSelection();
+                updateFavoriteTileSelection();
         });
 }
 
@@ -1164,12 +1006,12 @@ function start() {
                 window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
         });
 
-        loadDrawingFavorites();
+        loadTileFavorites();
 
-	paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
-	paintTool.onReloadTile = function(){ reloadTile() };
-	paintTool.onReloadSprite = function(){ reloadSprite() };
-	paintTool.onReloadItem = function(){ reloadItem() };
+        paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
+        paintTool.onReloadTile = function(){ reloadTile() };
+        paintTool.onReloadSprite = function(){ reloadSprite() };
+        paintTool.onReloadItem = function(){ reloadItem() };
 
 	markerTool = new RoomMarkerTool(document.getElementById("markerCanvas1"), document.getElementById("markerCanvas2") );
 	bitsyLog("MARKER TOOL " + markerTool, "editor");
@@ -1208,7 +1050,7 @@ function start() {
 	updateInventoryUI();
 
 	// init color picker
-	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg','colorPickerHexText');
+	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg', 'colorPickerHexText');
 	document.getElementById("colorPaletteOptionBackground").checked = true;
 	paletteTool = new PaletteTool(colorPicker,["colorPaletteLabelBackground", "colorPaletteLabelTile", "colorPaletteLabelSprite"],"paletteName");
 	events.Listen("palette_change", function(event) {
@@ -1230,7 +1072,7 @@ function start() {
 
 	onInventoryChanged = function(id) {
 		updateInventoryUI();
-
+	
 		// animate to draw attention to change
 		document.getElementById("inventoryItem_" + id).classList.add("flash");
 		setTimeout(
@@ -1244,7 +1086,7 @@ function start() {
 
 	onVariableChanged = function(id) {
 		updateInventoryUI();
-
+	
 		// animate to draw attention to change
 		document.getElementById("inventoryVariable_" + id).classList.add("flash");
 		setTimeout(
@@ -1300,13 +1142,13 @@ function start() {
                 mainElement : document.getElementById("findPanelMain"),
         });
 
-        initFavoriteDrawingsUI();
+        initFavoriteTilesUI();
 
-	// hack: reload drawing after find tool is created, so the blip dropdown is up-to-date
-	paintTool.reloadDrawing();
+        // hack: reload drawing after find tool is created, so the blip dropdown is up-to-date
+        paintTool.reloadDrawing();
 
-	// ROOM TOOL
-	roomTool = makeRoomTool();
+        // ROOM TOOL
+        roomTool = makeRoomTool();
 	roomTool.rootElement.classList.add("bitsy-playmode-enable");
 	roomTool.titlebarElement.classList.add("bitsy-playmode-reverse-color");
 	roomTool.nav.element.classList.add("bitsy-playmode-hide");
@@ -1325,14 +1167,6 @@ function start() {
 	// game tool
 	gameTool = makeGameTool();
 
-	// favorites UI (call after core tools so a favorites hiccup can't block the main UI)
-	try {
-		initFavoriteDrawingsUI();
-	}
-	catch (e) {
-		console.error("Failed to initialize favourites UI", e);
-	}
-
 	// load panel preferences
 	var prefs = getPanelPrefs();
 	Store.set('panel_prefs', prefs); // save loaded prefs
@@ -1349,16 +1183,6 @@ function start() {
 
 	// about tool
 	initAbout();
-
-	// favorites last so issues here can't block core tools
-	try {
-		loadDrawingFavorites();
-		updateFavoriteButton();
-		initFavoriteDrawingsUI();
-	}
-	catch (e) {
-		console.error("Failed to initialize favourites UI", e);
-	}
 }
 
 function newDrawing() {
@@ -1691,7 +1515,7 @@ function reloadTile() {
 
         updateDrawingNameUI(true);
 
-        updateFavoriteButton();
+        updateTileFavoriteButton();
 
         paintTool.updateCanvas();
 }
@@ -1750,7 +1574,7 @@ function reloadSprite() {
 
         updateDrawingNameUI( drawing.id != "A" );
 
-        updateFavoriteButton();
+        updateTileFavoriteButton();
 
         // update paint canvas
         paintTool.updateCanvas();
@@ -1771,7 +1595,7 @@ function reloadItem() {
 
         updateDrawingNameUI(true);
 
-        updateFavoriteButton();
+        updateTileFavoriteButton();
 
         // update paint canvas
         paintTool.updateCanvas();
