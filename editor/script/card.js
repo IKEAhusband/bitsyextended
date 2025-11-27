@@ -264,209 +264,156 @@ function makeToolCard(processName, initFunction) {
 }
 
 function createNavControls(options) {
-        // note : is the split between responsibilities of the tool and the category good?
-        var category = findTool.getCategory(options.data);
-        var selectedId = category.getIdList()[0];
-        var favoriteType = category.favoriteType;
-        var favoriteButton = null;
-        
-        var navDiv = document.createElement("div");
-        navDiv.classList.add("navControl");
-        
-        var nameInput = createTextInputElement({
-                placeholder : category.getItemDescription(selectedId),
-                value : category.getItemName(selectedId),
-                onchange : function(e) {
-                        if (e.target.value.length > 0) {
-                                category.setItemName(selectedId, e.target.value);
-                        }
-                        else {
-                                category.setItemName(selectedId, null);
-                        }
-        
-                        refreshGameData();
-                },
-        });
-        navDiv.appendChild(nameInput);
-        
-        function getCurIndex() {
-                var idList = category.getIdList();
-                return idList.indexOf(selectedId);
-        }
-        
-        function selectAtIndex(index) {
-                var idList = category.getIdList();
-                if (idList.length <= 0) {
-                        options.parentElement.classList.add("bitsy-card-nothing");
-                        nameInput.value = "";
-                        nameInput.placeholder = "";
-                        nameInput.disabled = true;
-                        prevButton.disabled = true;
-                        nextButton.disabled = true;
-                        copyButton.disabled = true;
-                        deleteButton.disabled = true;
-                        findButton.disabled = true;
-                        if (favoriteButton) {
-                                favoriteButton.disabled = true;
-                                favoriteButton.setAttribute("aria-pressed", "false");
-                        }
-                        return;
-                }
-        
-                if (options.parentElement.classList.contains("bitsy-card-nothing")) {
-                        // un-disable everything
-                        options.parentElement.classList.remove("bitsy-card-nothing");
-                        nameInput.disabled = false;
-                        prevButton.disabled = false;
-                        nextButton.disabled = false;
-                        copyButton.disabled = false;
-                        deleteButton.disabled = false;
-                        findButton.disabled = false;
-                        if (favoriteButton) {
-                                favoriteButton.disabled = false;
-                        }
-                }
-        
-                if (index >= idList.length) {
-                        index = 0;
-                }
-                else if (index < 0) {
-                        index = idList.length - 1;
-                }
-        
-                selectedId = idList[index];
-                selectById(selectedId);
-        }
-        
-        function selectById(id) {
-                selectedId = id;
-                nameInput.value = category.getItemName(selectedId);
-                nameInput.placeholder = category.getItemDescription(selectedId);
-                options.onSelect(selectedId);
-                updateFavoriteSelection();
-        
-                if (findTool) {
-                        findTool.updateSelection();
-                }
-        }
-        
-        function updateFavoriteSelection() {
-                if (!favoriteButton || !favoriteType) {
-                        return;
-                }
-        
-                var hasSelection = selectedId !== undefined && selectedId !== null;
-                favoriteButton.disabled = !hasSelection;
-        
-                if (!hasSelection) {
-                        favoriteButton.setAttribute("aria-pressed", "false");
-                        return;
-                }
-        
-                var isFav = isDrawingFavorite(favoriteType, selectedId);
-                favoriteButton.setAttribute("aria-pressed", isFav);
-                favoriteButton.title = isFav
-                        ? "Remove from favourites"
-                        : "Add to favourites";
-        }
-        
-        	var prevButton = createButtonElement({
-        		icon : "previous",
-        		description : "previous " + category.getCategoryName(),
-        		onclick : function() {
-        			selectAtIndex(getCurIndex() - 1);
-        		},
-        	});
-        	navDiv.appendChild(prevButton);
-        
-        	var nextButton = createButtonElement({
-        		icon : "next",
-        		description : "next " + category.getCategoryName(),
-        		onclick : function() {
-        			selectAtIndex(getCurIndex() + 1);
-        		}
-        	});
-        	navDiv.appendChild(nextButton);
-        
-        	var addButton = createButtonElement({
-        		icon : "add",
-        		description : "add " + category.getCategoryName(),
-        		onclick : function() {
-        			bitsy = options.system; // hack to use correct system
-        			options.add();
-        			refreshGameData();
-        			selectAtIndex(-1);
-        		},
-        	});
-        	navDiv.appendChild(addButton);
-        
-        	var copyButton = createButtonElement({
-        		icon : "copy",
-        		description : "duplicate " + category.getCategoryName(),
-        		onclick : function() {
-        			options.duplicate(selectedId);
-        			refreshGameData();
-        			selectAtIndex(-1);
-        		},
-        	});
-        	navDiv.appendChild(copyButton);
-        
-        var deleteButton = createButtonElement({
-                icon : "delete",
-                description : "delete " + category.getCategoryName(),
-                onclick : function() {
-                        // todo : warn about deleting last object?
-                        // todo : localize
-                        if (confirm("are you sure you want to delete this " + category.getCategoryName() + "?")) {
-                                var curIndex = getCurIndex();
-                                options.delete(selectedId);
-                                refreshGameData();
-                                selectAtIndex(curIndex);
-                        }
-                },
-        });
-        navDiv.appendChild(deleteButton);
-        
-        if (favoriteType && isFavoriteSupportedType(favoriteType)) {
-        favoriteButton = createButtonElement({
-                icon : "about",
-                description : "toggle favourite",
-                onclick : function() {
-                        if (selectedId) {
-                                toggleFavoriteFor(favoriteType, selectedId);
-                                updateFavoriteSelection();
-                        }
-                },
-        });
-        favoriteButton.setAttribute("aria-pressed", "false");
-        navDiv.appendChild(favoriteButton);
-        }
-        
-        var findButton = createButtonElement({
-        icon : "search",
-        description : "open find tool: " + category.getCategoryName(),
-        onclick : function() {
-                openFindTool(options.data, options.cardDivId);
-        },
-        });
-        navDiv.appendChild(findButton);
-        
-        if (favoriteType && isFavoriteSupportedType(favoriteType)) {
-        events.Listen("favorite_toggled", function(event) {
-        if (event.drawingType === favoriteType) {
-        updateFavoriteSelection();
-        }
-        });
-        }
-        
-        // selectAtIndex(0);
-        
-        	return {
-        		element: navDiv,
-        		select: selectById,
-        		selectAtIndex: selectAtIndex,
-        		getSelected: function() {
-        			return selectedId;
-        		}
+	// note : is the split between responsibilities of the tool and the category good?
+	var category = findTool.getCategory(options.data);
+	var selectedId = category.getIdList()[0];
+
+	var navDiv = document.createElement("div");
+	navDiv.classList.add("navControl");
+
+	var nameInput = createTextInputElement({
+		placeholder : category.getItemDescription(selectedId),
+		value : category.getItemName(selectedId),
+		onchange : function(e) {
+			if (e.target.value.length > 0) {
+				category.setItemName(selectedId, e.target.value);
+			}
+			else {
+				category.setItemName(selectedId, null);
+			}
+
+			refreshGameData();
+		},
+	});
+	navDiv.appendChild(nameInput);
+
+	function getCurIndex() {
+		var idList = category.getIdList();
+		return idList.indexOf(selectedId);
+	}
+
+	function selectAtIndex(index) {
+		var idList = category.getIdList();
+		if (idList.length <= 0) {
+			options.parentElement.classList.add("bitsy-card-nothing");
+			nameInput.value = "";
+			nameInput.placeholder = "";
+			nameInput.disabled = true;
+			prevButton.disabled = true;
+			nextButton.disabled = true;
+			copyButton.disabled = true;
+			deleteButton.disabled = true;
+			findButton.disabled = true;
+			return;
+		}
+
+		if (options.parentElement.classList.contains("bitsy-card-nothing")) {
+			// un-disable everything
+			options.parentElement.classList.remove("bitsy-card-nothing");
+			nameInput.disabled = false;
+			prevButton.disabled = false;
+			nextButton.disabled = false;
+			copyButton.disabled = false;
+			deleteButton.disabled = false;
+			findButton.disabled = false;
+		}
+
+		if (index >= idList.length) {
+			index = 0;
+		}
+		else if (index < 0) {
+			index = idList.length - 1;
+		}
+
+		selectedId = idList[index];
+		selectById(selectedId);
+	}
+
+	function selectById(id) {
+		selectedId = id;
+		nameInput.value = category.getItemName(selectedId);
+		nameInput.placeholder = category.getItemDescription(selectedId);
+		options.onSelect(selectedId);
+
+		if (findTool) {
+			findTool.updateSelection();
+		}
+	}
+
+	var prevButton = createButtonElement({
+		icon : "previous",
+		description : "previous " + category.getCategoryName(),
+		onclick : function() {
+			selectAtIndex(getCurIndex() - 1);
+		},
+	});
+	navDiv.appendChild(prevButton);
+
+	var nextButton = createButtonElement({
+		icon : "next",
+		description : "next " + category.getCategoryName(),
+		onclick : function() {
+			selectAtIndex(getCurIndex() + 1);
+		}
+	});
+	navDiv.appendChild(nextButton);
+
+	var addButton = createButtonElement({
+		icon : "add",
+		description : "add " + category.getCategoryName(),
+		onclick : function() {
+			bitsy = options.system; // hack to use correct system
+			options.add();
+			refreshGameData();
+			selectAtIndex(-1);
+		},
+	});
+	navDiv.appendChild(addButton);
+
+	var copyButton = createButtonElement({
+		icon : "copy",
+		description : "duplicate " + category.getCategoryName(),
+		onclick : function() {
+			options.duplicate(selectedId);
+			refreshGameData();
+			selectAtIndex(-1);
+		},
+	});
+	navDiv.appendChild(copyButton);
+
+	var deleteButton = createButtonElement({
+		icon : "delete",
+		description : "delete " + category.getCategoryName(),
+		onclick : function() {
+			// todo : warn about deleting last object?
+			// todo : localize
+			if (confirm("are you sure you want to delete this " + category.getCategoryName() + "?")) {
+				var curIndex = getCurIndex();
+				options.delete(selectedId);
+				refreshGameData();
+				selectAtIndex(curIndex);
+			}
+		},
+	});
+	navDiv.appendChild(deleteButton);
+
+	var findButton = createButtonElement({
+		icon : "search",
+		description : "open find tool: " + category.getCategoryName(),
+		onclick : function() {
+			openFindTool(options.data, options.cardDivId);
+		},
+	});
+	navDiv.appendChild(findButton);
+
+	// selectAtIndex(0);
+
+	return {
+		element: navDiv,
+		select: selectById,
+		selectAtIndex: selectAtIndex,
+		getSelected: function() {
+			return selectedId;
+		}
 	};
 }
