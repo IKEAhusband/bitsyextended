@@ -528,9 +528,9 @@
                                                                         <span id="paintGridIcon" class="bitsy_icon">visibility</span>
                                                                         <span class="localize grid_toggle_visible">grid</span>
                                                                 </label>
-                                                                <button id="toggleTileFavoriteButton" title="favorite tile" class="bitsy-menu-label" style="display:none;" onclick="toggleTileFavorite();">
-                                                                        <span id="tileFavoriteIcon" class="bitsy_icon">about</span>
-                                                                        <span id="tileFavoriteLabel">favourite</span>
+                                                                <button id="toggleFavoriteButton" title="favorite tile" class="bitsy-menu-label" style="display:none;" onclick="toggleFavorite();">
+                                                                        <span id="favoriteIcon" class="bitsy_icon">about</span>
+                                                                        <span id="favoriteLabel">favourite</span>
                                                                 </button>
                                                                 <button id="showInventoryButton" title="show inventory" class="bitsy-menu-label" onclick="showPanel('inventoryPanel', 'paintPanel');">
                                                                         <span class="bitsy_icon">item</span>
@@ -646,12 +646,32 @@
 </div>
 
 <div class="bitsy-card-main">
-<div id="favoriteTilesEmptyState" class="controlBox">
+<div class="favorite-section">
+<div class="favorite-section-title bitsy-menu-label">
+<span class="bitsy_icon">tile</span>
+<span>favourite tiles</span>
+</div>
+<div id="favoriteTilesEmptyState" class="controlBox favorite-empty-state">
 <span>There are no favorite tiles yet!</span>
 </div>
 <div class="bitsy-menu-scrollview">
 <div class="bitsy-menu-scrollcontent">
-<div id="favoriteTilesGrid" class="favorite-tiles-grid"></div>
+<div id="favoriteTilesGrid" class="favorite-grid"></div>
+</div>
+</div>
+</div>
+<div class="favorite-section">
+<div class="favorite-section-title bitsy-menu-label">
+<span class="bitsy_icon">item</span>
+<span>favourite items</span>
+</div>
+<div id="favoriteItemsEmptyState" class="controlBox favorite-empty-state">
+<span>There are no favorite items yet!</span>
+</div>
+<div class="bitsy-menu-scrollview">
+<div class="bitsy-menu-scrollcontent">
+<div id="favoriteItemsGrid" class="favorite-grid"></div>
+</div>
 </div>
 </div>
 </div>
