@@ -197,27 +197,30 @@ return getDrawingFrameData(drawing, frameIndex);
 	// methods for updating the UI
 	this.onReloadTile = null;
 	this.onReloadSprite = null;
-	this.onReloadItem = null;
-	this.reloadDrawing = function() {
-		if (drawing.type === TileType.Tile) {
-			if (self.onReloadTile) {
-				self.onReloadTile();
-			}
-		}
-		else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
-			if (self.onReloadSprite) {
-				self.onReloadSprite();
-			}
-		}
-		else if (drawing.type === TileType.Item) {
-			if (self.onReloadItem) {
-				self.onReloadItem();
-			}
-		}
+        this.onReloadItem = null;
+        this.reloadDrawing = function() {
+                if (drawing.type === TileType.Tile) {
+                        if (self.onReloadTile) {
+                                self.onReloadTile();
+                        }
+                }
+                else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
+                        if (self.onReloadSprite) {
+                                self.onReloadSprite();
+                        }
+                }
+                else if (drawing.type === TileType.Item) {
+                        if (self.onReloadItem) {
+                                self.onReloadItem();
+                        }
+                }
 
-		// hack to force update of new menu
-		self.menu.update();
-	}
+                // hack to force update of new menu
+                self.menu.update();
+
+                // update paint color UI to reflect the current drawing
+                updatePaintColorOptions();
+        }
 
 	this.selectDrawing = function(drawingData) {
 		drawing = drawingData; // ok this global variable is weird imo
@@ -401,6 +404,7 @@ return getDrawingFrameData(drawing, frameIndex);
 
 	events.Listen("palette_change", function(event) {
 		self.updateCanvas();
+		updatePaintColorOptions();
 
 		if (self.isCurDrawingAnimated) {
 			// TODO -- this animation stuff needs to be moved in here I think?
