@@ -1942,7 +1942,6 @@ function on_paint_avatar_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:none;");
         document.getElementById("wall").setAttribute("style","display:none;");
         setTransparentBgcVisibility(true);
-        movePaintColorControl("paintColorTransparentSlot");
         // TODO : make navigation commands un-clickable
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(false);
@@ -1970,7 +1969,6 @@ function on_paint_tile_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:none;");
         document.getElementById("wall").setAttribute("style","display:block;");
         setTransparentBgcVisibility(false);
-        movePaintColorControl("paintColorWallSlot");
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(true);
         //document.getElementById("animation").setAttribute("style","display:block;");
@@ -2006,7 +2004,6 @@ function on_paint_sprite_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:block;");
         document.getElementById("wall").setAttribute("style","display:none;");
         setTransparentBgcVisibility(true);
-        movePaintColorControl("paintColorTransparentSlot");
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(true);
         //document.getElementById("animation").setAttribute("style","display:block;");
@@ -2035,7 +2032,6 @@ function on_paint_item_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:block;");
         document.getElementById("wall").setAttribute("style","display:none;");
         setTransparentBgcVisibility(true);
-        movePaintColorControl("paintColorTransparentSlot");
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(true);
         //document.getElementById("animation").setAttribute("style","display:block;");
