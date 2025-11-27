@@ -107,18 +107,11 @@
 }
 
 .paint-color-dropdown.open {
-display: block;
+	display: block;
 }
 
 #paintColorSelect {
-min-width: 14em;
-}
-
-.paint-color-slot {
-display: inline-flex;
-align-items: center;
-gap: var(--bitsy-space-xs);
-margin-left: var(--bitsy-space-s);
+	min-width: 14em;
 }
 
 #animationFrameStrip {

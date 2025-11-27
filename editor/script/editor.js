@@ -1792,10 +1792,10 @@ function updatePaintColorSummary(colors, selectedIndex) {
 }
 
 function updatePaintColorOptions() {
-var select = document.getElementById("paintColorSelect");
-if (!select || !drawing) {
-return;
-}
+        var select = document.getElementById("paintColorSelect");
+        if (!select || !drawing) {
+                return;
+        }
 
         var paletteInfo = getPaintPaletteInfo();
         var colors = paletteInfo.colors;
@@ -1868,17 +1868,6 @@ function onPaintColorSelectChange(event) {
         if (dropdown) {
                 dropdown.classList.remove("open");
         }
-}
-
-function movePaintColorControl(containerId) {
-        var slot = document.getElementById(containerId);
-        var control = document.getElementById("paintColorControl");
-
-        if (!slot || !control || slot === control.parentElement) {
-                return;
-        }
-
-        slot.appendChild(control);
 }
 
 /* PALETTE STUFF */
