@@ -1445,6 +1445,38 @@ function rotateDrawingFramesClockwise(frames) {
         return rotatedFrames;
 }
 
+function invertDrawingFrames(frames) {
+        var invertedFrames = [];
+
+        for (var i = 0; i < frames.length; i++) {
+                invertedFrames.push([]);
+                for (var y = 0; y < frames[i].length; y++) {
+                        invertedFrames[i].push([]);
+                        for (var x = 0; x < frames[i][y].length; x++) {
+                                invertedFrames[i][y].push(frames[i][y][x] === 0 ? 1 : 0);
+                        }
+                }
+        }
+
+        return invertedFrames;
+}
+
+function clearDrawingFrames(frames) {
+        var clearedFrames = [];
+
+        for (var i = 0; i < frames.length; i++) {
+                clearedFrames.push([]);
+                for (var y = 0; y < frames[i].length; y++) {
+                        clearedFrames[i].push([]);
+                        for (var x = 0; x < frames[i][y].length; x++) {
+                                clearedFrames[i][y].push(frames[i][y][x] === 1 ? 0 : frames[i][y][x]);
+                        }
+                }
+        }
+
+        return clearedFrames;
+}
+
 var paintHistory = {
 	key: null,
 	states: [],
@@ -1472,8 +1504,10 @@ function updatePaintUndoRedoButtons() {
         var undoButton = document.getElementById("paintUndoButton");
         var redoButton = document.getElementById("paintRedoButton");
         var rotateButton = document.getElementById("paintRotateButton");
+        var invertButton = document.getElementById("paintInvertButton");
+        var clearButton = document.getElementById("paintClearButton");
 
-        if (!undoButton || !redoButton || !rotateButton) {
+        if (!undoButton || !redoButton || !rotateButton || !invertButton || !clearButton) {
                 return;
         }
 
@@ -1481,10 +1515,14 @@ function updatePaintUndoRedoButtons() {
         var canUndo = keyMatches && paintHistory.index > 0;
         var canRedo = keyMatches && paintHistory.index >= 0 && paintHistory.index < paintHistory.states.length - 1;
         var canRotate = keyMatches;
+        var canInvert = keyMatches;
+        var canClear = keyMatches;
 
         undoButton.disabled = !canUndo;
         redoButton.disabled = !canRedo;
         rotateButton.disabled = !canRotate;
+        invertButton.disabled = !canInvert;
+        clearButton.disabled = !canClear;
 }
 
 function resetPaintHistoryForDrawing(drawingData) {
@@ -1609,12 +1647,58 @@ function rotatePaintEdit() {
 
         var rotatedFrames = rotateDrawingFramesClockwise(drawingFrames);
 
-        renderer.SetDrawingSource(drawing.drw, rotatedFrames);
+        applyDrawingFrameChanges(rotatedFrames);
+
+        events.Raise("paint_edit");
+}
+
+function invertPaintEdit() {
+        var historyKey = getPaintHistoryKey(drawing);
+
+        if (!historyKey) {
+                return;
+        }
+
+        var drawingFrames = getDrawingImageSource(drawing);
+
+        if (!drawingFrames || drawingFrames.length <= 0) {
+                return;
+        }
+
+        var invertedFrames = invertDrawingFrames(drawingFrames);
+
+        applyDrawingFrameChanges(invertedFrames);
+
+        events.Raise("paint_edit");
+}
+
+function clearPaintEdit() {
+        var historyKey = getPaintHistoryKey(drawing);
+
+        if (!historyKey) {
+                return;
+        }
+
+        var drawingFrames = getDrawingImageSource(drawing);
+
+        if (!drawingFrames || drawingFrames.length <= 0) {
+                return;
+        }
+
+        var clearedFrames = clearDrawingFrames(drawingFrames);
+
+        applyDrawingFrameChanges(clearedFrames);
+
+        events.Raise("paint_edit");
+}
+
+function applyDrawingFrameChanges(frames) {
+        renderer.SetDrawingSource(drawing.drw, frames);
 
         var drawingData = getCurrentDrawingData();
 
         if (drawingData && drawingData.animation) {
-                setDrawingAnimationMetadata(drawingData, rotatedFrames.length);
+                setDrawingAnimationMetadata(drawingData, frames.length);
         }
 
         renderer.ClearCache();
@@ -1627,8 +1711,6 @@ function rotatePaintEdit() {
                 renderAnimationPreview(drawing);
                 scrollAnimationFrameIntoView(paintTool.curDrawingFrameIndex);
         }
-
-        events.Raise("paint_edit");
 }
 
 events.Listen("select_drawing", function() {
