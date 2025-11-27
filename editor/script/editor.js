@@ -1302,11 +1302,11 @@ function start() {
 
         initFavoriteDrawingsUI();
 
-        // hack: reload drawing after find tool is created, so the blip dropdown is up-to-date
-        paintTool.reloadDrawing();
+	// hack: reload drawing after find tool is created, so the blip dropdown is up-to-date
+	paintTool.reloadDrawing();
 
-        // ROOM TOOL
-        roomTool = makeRoomTool();
+	// ROOM TOOL
+	roomTool = makeRoomTool();
 	roomTool.rootElement.classList.add("bitsy-playmode-enable");
 	roomTool.titlebarElement.classList.add("bitsy-playmode-reverse-color");
 	roomTool.nav.element.classList.add("bitsy-playmode-hide");
@@ -1324,6 +1324,14 @@ function start() {
 
 	// game tool
 	gameTool = makeGameTool();
+
+	// favorites UI (call after core tools so a favorites hiccup can't block the main UI)
+	try {
+		initFavoriteDrawingsUI();
+	}
+	catch (e) {
+		console.error("Failed to initialize favourites UI", e);
+	}
 
 	// load panel preferences
 	var prefs = getPanelPrefs();
