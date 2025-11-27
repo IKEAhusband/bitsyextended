@@ -527,19 +527,27 @@
 						<canvas id="paint"></canvas>
 
                                                 <div id="paintEditMain">
-                                                        <div id="paintHistoryControls" class="buttonGroup">
-                                                                <button id="paintUndoButton" title="undo" class="color0" onclick="undoPaintEdit();" disabled>
-                                                                        <span class="bitsy_icon">previous</span>
-                                                                </button>
+<div id="paintHistoryControls" class="buttonGroup">
+<button id="paintUndoButton" title="undo" class="color0" onclick="undoPaintEdit();" disabled>
+<span class="bitsy_icon">previous</span>
+</button>
 
-                                                                <button id="paintRedoButton" title="redo" class="color0" onclick="redoPaintEdit();" disabled>
-                                                                        <span class="bitsy_icon">next</span>
-                                                                </button>
+<button id="paintRedoButton" title="redo" class="color0" onclick="redoPaintEdit();" disabled>
+<span class="bitsy_icon">next</span>
+</button>
 
-                                                                <button id="paintRotateButton" title="rotate" class="color0" onclick="rotatePaintEdit();" disabled>
-                                                                        <span class="bitsy_icon">rotate</span>
-                                                                </button>
-                                                        </div>
+<button id="paintRotateButton" title="rotate" class="color0" onclick="rotatePaintEdit();" disabled>
+<span class="bitsy_icon">rotate</span>
+</button>
+
+<button id="paintInvertButton" title="invert" class="color0" onclick="invertPaintEdit();" disabled>
+<span class="bitsy_icon">invert</span>
+</button>
+
+<button id="paintClearButton" title="clear" class="color0" onclick="clearPaintEdit();" disabled>
+<span class="bitsy_icon">close</span>
+</button>
+</div>
 
                                                         <div class="buttonGroup">
 <input type="checkbox" id="paintGridCheck" onclick="togglePaintGrid(event);" autocomplete="off" checked/>
