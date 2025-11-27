@@ -550,6 +550,19 @@
                                                                 <span id="wallCheckboxIcon" class="bitsy_icon">wall_off</span>
                                                                 <span class="localize wall_toggle">wall</span>
                                                         </label>
+                                                        <div id="paintColorWallSlot" class="paint-color-slot">
+                                                                <div id="paintColorControl" class="bitsy-menu-label">
+                                                                        <button id="paintColorButton" title="choose drawing color" type="button" class="bitsy-menu-label" onclick="togglePaintColorDropdown(event);">
+                                                                                <span class="bitsy_icon">colors</span>
+                                                                                <span class="paint-color-label">color</span>
+                                                                                <span id="paintColorSelectionText" class="paint-color-text"></span>
+                                                                                <span id="paintColorSwatch" class="paint-color-swatch"></span>
+                                                                        </button>
+                                                                        <div id="paintColorDropdown" class="paint-color-dropdown">
+                                                                                <select id="paintColorSelect" size="4" onchange="onPaintColorSelectChange(event);"></select>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
                                                 </div>
 
                                                 <div id="transparentBgc" class="controlBox" style="display:none;">
@@ -558,6 +571,7 @@
                                                                 <span id="transparentBgcCheckboxIcon" class="bitsy_icon">wall_off</span>
                                                                 <span class="localize transparent_bgc_toggle">transparent BGC</span>
                                                         </label>
+                                                        <div id="paintColorTransparentSlot" class="paint-color-slot"></div>
                                                 </div>
 
                                                 <div id="dialog" style="display:none;">

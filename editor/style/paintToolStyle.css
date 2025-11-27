@@ -29,19 +29,19 @@
 #animationDeleteFrame,
 #animationFramePrevious,
 #animationFrameNext {
-display: inline-flex;
-align-items: center;
-gap: var(--bitsy-space-xxs);
-padding: var(--bitsy-space-xxs) var(--bitsy-space-s);
-margin: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--bitsy-space-xxs);
+	padding: var(--bitsy-space-xxs) var(--bitsy-space-s);
+	margin: 0;
 }
 
 #animationAddFrame .bitsy_icon,
 #animationDeleteFrame .bitsy_icon,
 #animationFramePrevious .bitsy_icon,
 #animationFrameNext .bitsy_icon {
-font-size: 1em;
-margin-right: 0;
+	font-size: 1em;
+	margin-right: 0;
 }
 
 .animation-add-frame-label {
@@ -65,27 +65,79 @@ margin-right: 0;
 }
 
 #animation .bitsy-thumbnail img {
-        width: 3em;
-        height: 3em;
+	width: 3em;
+	height: 3em;
+}
+
+#paintColorControl {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--bitsy-space-xxs);
+}
+
+#paintColorButton {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--bitsy-space-xxs);
+}
+
+.paint-color-text {
+	margin-left: var(--bitsy-space-xxs);
+}
+
+.paint-color-swatch {
+	width: 1.4em;
+	height: 1.4em;
+	border: 1px solid var(--bitsy-color-foreground);
+	border-radius: var(--bitsy-radius-xs);
+	margin-left: var(--bitsy-space-xxs);
+}
+
+.paint-color-dropdown {
+	position: absolute;
+	background: var(--bitsy-color-background);
+	border: 1px solid var(--bitsy-color-accent-2);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+	padding: var(--bitsy-space-xxs);
+	top: calc(100% + var(--bitsy-space-xxs));
+	left: 0;
+	z-index: 10;
+	display: none;
+}
+
+.paint-color-dropdown.open {
+display: block;
+}
+
+#paintColorSelect {
+min-width: 14em;
+}
+
+.paint-color-slot {
+display: inline-flex;
+align-items: center;
+gap: var(--bitsy-space-xs);
+margin-left: var(--bitsy-space-s);
 }
 
 #animationFrameStrip {
-display: flex;
-flex-direction: column;
-align-items: stretch;
-gap: var(--bitsy-space-s);
-width: 100%;
-max-width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--bitsy-space-s);
+	width: 100%;
+	max-width: 100%;
 }
 
 #animationFrameList {
-display: flex;
-align-items: stretch;
-flex: 1;
-width: 100%;
-overflow-x: hidden;
-gap: var(--bitsy-space-s);
-padding-bottom: var(--bitsy-space-xxs);
+	display: flex;
+	align-items: stretch;
+	flex: 1;
+	width: 100%;
+	overflow-x: hidden;
+	gap: var(--bitsy-space-s);
+	padding-bottom: var(--bitsy-space-xxs);
 }
 
 #animationFrameSliderContainer {
@@ -100,13 +152,13 @@ padding-bottom: var(--bitsy-space-xxs);
 }
 
 #animationFrames {
-display: flex;
-flex-wrap: nowrap;
-gap: var(--bitsy-space-s);
-flex: 1 1 auto;
-min-width: 100%;
-width: auto;
-will-change: transform;
+	display: flex;
+	flex-wrap: nowrap;
+	gap: var(--bitsy-space-s);
+	flex: 1 1 auto;
+	min-width: 100%;
+	width: auto;
+	will-change: transform;
 }
 
 #animationFrames .bitsy-thumbnail {

@@ -1044,6 +1044,7 @@ function start() {
 	//draw everything
 	on_paint_avatar();
 	paintTool.updateCanvas();
+	updatePaintColorOptions();
 	markerTool.Refresh();
 
 	document.getElementById("inventoryOptionItem").checked = true; // a bit hacky
@@ -1730,15 +1731,154 @@ function updatePreviewDialogButton() {
 }
 
 function togglePaintGrid(e) {
-	paintTool.drawPaintGrid = e.target.checked;
-	updatePaintGridCheck(paintTool.drawPaintGrid);
-	paintTool.updateCanvas();
-	setPanelSetting("paintPanel", "grid", paintTool.drawPaintGrid);
+        paintTool.drawPaintGrid = e.target.checked;
+        updatePaintGridCheck(paintTool.drawPaintGrid);
+        paintTool.updateCanvas();
+        setPanelSetting("paintPanel", "grid", paintTool.drawPaintGrid);
 }
 
 function updatePaintGridCheck(checked) {
-	document.getElementById("paintGridCheck").checked = checked;
-	iconUtils.LoadIcon(document.getElementById("paintGridIcon"), checked ? "visibility" : "visibility_off");
+        document.getElementById("paintGridCheck").checked = checked;
+        iconUtils.LoadIcon(document.getElementById("paintGridIcon"), checked ? "visibility" : "visibility_off");
+}
+
+function getPaintRoomId() {
+        var selectedRoomId = state.room;
+
+        if (roomTool && roomTool.getSelected) {
+                selectedRoomId = roomTool.getSelected();
+        }
+
+        if (room[selectedRoomId] === undefined) {
+                var roomIds = sortedRoomIdList();
+                selectedRoomId = roomIds.length > 0 ? roomIds[0] : "0";
+        }
+
+        return selectedRoomId;
+}
+
+function getPaintPaletteInfo() {
+        var roomId = getPaintRoomId();
+        var palId = room[roomId] ? room[roomId].pal : curDefaultPal();
+
+        if (!palId) {
+                palId = curDefaultPal();
+        }
+
+        return {
+                palId: palId,
+                colors: getPal(palId) || [],
+        };
+}
+
+function updatePaintColorSummary(colors, selectedIndex) {
+        var label = document.getElementById("paintColorSelectionText");
+        var swatch = document.getElementById("paintColorSwatch");
+        var colorText = colors[selectedIndex] ? colors[selectedIndex].join(",") : "-";
+
+        if (label) {
+                label.textContent = colorText;
+        }
+
+        if (swatch) {
+                if (colors[selectedIndex]) {
+                        swatch.style.backgroundColor = "rgb(" + colors[selectedIndex][0] + "," + colors[selectedIndex][1] + "," + colors[selectedIndex][2] + ")";
+                        swatch.style.display = "inline-block";
+                }
+                else {
+                        swatch.style.display = "none";
+                }
+        }
+}
+
+function updatePaintColorOptions() {
+var select = document.getElementById("paintColorSelect");
+if (!select || !drawing) {
+return;
+}
+
+        var paletteInfo = getPaintPaletteInfo();
+        var colors = paletteInfo.colors;
+
+        select.innerHTML = "";
+
+        for (var i = 0; i < colors.length; i++) {
+                var option = document.createElement("option");
+                option.value = i;
+                option.textContent = "COL " + i + " — " + colors[i][0] + "," + colors[i][1] + "," + colors[i][2];
+                option.style.backgroundColor = "rgb(" + colors[i][0] + "," + colors[i][1] + "," + colors[i][2] + ")";
+                select.appendChild(option);
+        }
+
+        var selectedIndex = Math.max(0, Math.min(colors.length - 1, drawing.col || 0));
+        if (colors.length > 0) {
+                select.value = selectedIndex;
+        }
+
+        updatePaintColorSummary(colors, selectedIndex);
+}
+
+function togglePaintColorDropdown(event) {
+        if (event) {
+                event.stopPropagation();
+        }
+
+        var dropdown = document.getElementById("paintColorDropdown");
+        if (!dropdown) {
+                return;
+        }
+
+        var isOpen = dropdown.classList.contains("open");
+
+        if (isOpen) {
+                dropdown.classList.remove("open");
+                return;
+        }
+
+        updatePaintColorOptions();
+        dropdown.classList.add("open");
+
+        var select = document.getElementById("paintColorSelect");
+        if (select) {
+                select.focus();
+        }
+}
+
+function onPaintColorSelectChange(event) {
+        var paletteInfo = getPaintPaletteInfo();
+        var colors = paletteInfo.colors;
+        var colorIndex = parseInt(event.target.value);
+
+        if (isNaN(colorIndex) || colors.length <= 0) {
+                return;
+        }
+
+        var clampedIndex = Math.max(0, Math.min(colors.length - 1, colorIndex));
+        drawing.col = clampedIndex;
+
+        refreshGameData();
+        paintTool.updateCanvas();
+        updatePaintColorSummary(colors, clampedIndex);
+
+        if (paintTool.isCurDrawingAnimated) {
+                renderAnimationPreview(drawing);
+        }
+
+        var dropdown = document.getElementById("paintColorDropdown");
+        if (dropdown) {
+                dropdown.classList.remove("open");
+        }
+}
+
+function movePaintColorControl(containerId) {
+        var slot = document.getElementById(containerId);
+        var control = document.getElementById("paintColorControl");
+
+        if (!slot || !control || slot === control.parentElement) {
+                return;
+        }
+
+        slot.appendChild(control);
 }
 
 /* PALETTE STUFF */
@@ -1813,6 +1953,7 @@ function on_paint_avatar_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:none;");
         document.getElementById("wall").setAttribute("style","display:none;");
         setTransparentBgcVisibility(true);
+        movePaintColorControl("paintColorTransparentSlot");
         // TODO : make navigation commands un-clickable
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(false);
@@ -1840,6 +1981,7 @@ function on_paint_tile_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:none;");
         document.getElementById("wall").setAttribute("style","display:block;");
         setTransparentBgcVisibility(false);
+        movePaintColorControl("paintColorWallSlot");
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(true);
         //document.getElementById("animation").setAttribute("style","display:block;");
@@ -1875,6 +2017,7 @@ function on_paint_sprite_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:block;");
         document.getElementById("wall").setAttribute("style","display:none;");
         setTransparentBgcVisibility(true);
+        movePaintColorControl("paintColorTransparentSlot");
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(true);
         //document.getElementById("animation").setAttribute("style","display:block;");
@@ -1903,6 +2046,7 @@ function on_paint_item_ui_update() {
         document.getElementById("dialog").setAttribute("style","display:block;");
         document.getElementById("wall").setAttribute("style","display:none;");
         setTransparentBgcVisibility(true);
+        movePaintColorControl("paintColorTransparentSlot");
         document.getElementById("animationOuter").setAttribute("style","display:block;");
         updateDrawingNameUI(true);
         //document.getElementById("animation").setAttribute("style","display:block;");
