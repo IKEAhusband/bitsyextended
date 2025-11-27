@@ -164,7 +164,7 @@ function FindTool(options) {
                 },
                 {
                         id: "FAV",
-                        icon: "about",
+                        icon: "favorite",
                         getIdList: function() { return getValidFavoriteTiles(); },
                         getCategoryName: function() {
                                 return "favourites";
