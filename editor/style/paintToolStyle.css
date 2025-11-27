@@ -26,18 +26,22 @@
 }
 
 #animationAddFrame,
-#animationDeleteFrame {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--bitsy-space-xxs);
-        padding: var(--bitsy-space-xxs) var(--bitsy-space-s);
-        margin: 0;
+#animationDeleteFrame,
+#animationFramePrevious,
+#animationFrameNext {
+display: inline-flex;
+align-items: center;
+gap: var(--bitsy-space-xxs);
+padding: var(--bitsy-space-xxs) var(--bitsy-space-s);
+margin: 0;
 }
 
 #animationAddFrame .bitsy_icon,
-#animationDeleteFrame .bitsy_icon {
-        font-size: 1em;
-        margin-right: 0;
+#animationDeleteFrame .bitsy_icon,
+#animationFramePrevious .bitsy_icon,
+#animationFrameNext .bitsy_icon {
+font-size: 1em;
+margin-right: 0;
 }
 
 .animation-add-frame-label {
@@ -72,12 +76,6 @@ align-items: stretch;
 gap: var(--bitsy-space-s);
 width: 100%;
 max-width: 100%;
-}
-
-#animationFrameReorder {
-        display: flex;
-        justify-content: center;
-        gap: var(--bitsy-space-s);
 }
 
 #animationFrameList {
