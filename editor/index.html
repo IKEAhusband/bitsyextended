@@ -563,21 +563,27 @@
                                                 <div id="dialog" style="display:none;">
                                                 </div>
 
-                                                <div id="animationOuter" class="controlBox">
-                                                        <div id="animationHeader">
-                                                                <div id="isAnimated">
-                                                                        <input type="checkbox" id="animatedCheckbox" onchange="on_toggle_animated();" autocomplete="off" >
-                                                                        <label title="add animation to drawing" for="animatedCheckbox">
-                                                                                <span class="localize animation_title">animation</span>
-                                                                                <span id="animatedCheckboxIcon" class="bitsy_icon" style="margin-left: var(--bitsy-space-s);">expand_less</span>
-                                                                        </label>
-                                                                </div>
-                                                                <div id="animationActions">
-                                                                        <button id="animationAddFrame" class="bitsy-menu-label animation-add-frame" onclick="on_add_animation_frame();">
-                                                                                <span class="bitsy_icon">add</span>
-                                                                        </button>
-                                                                        <button id="animationDeleteFrame" class="bitsy-menu-label animation-delete-frame" onclick="on_delete_animation_frame();">
-                                                                                <span class="bitsy_icon">delete</span>
+<div id="animationOuter" class="controlBox">
+<div id="animationHeader">
+<div id="isAnimated">
+<input type="checkbox" id="animatedCheckbox" onchange="on_toggle_animated();" autocomplete="off" >
+<label title="add animation to drawing" for="animatedCheckbox">
+<span class="localize animation_title">animation</span>
+<span id="animatedCheckboxIcon" class="bitsy_icon" style="margin-left: var(--bitsy-space-s);">expand_less</span>
+</label>
+</div>
+<div id="animationActions">
+<button id="animationFramePrevious" class="bitsy-menu-label animation-shift-frame" onclick="on_shift_animation_frame(-1);" title="move frame left">
+<span class="bitsy_icon">previous</span>
+</button>
+<button id="animationFrameNext" class="bitsy-menu-label animation-shift-frame" onclick="on_shift_animation_frame(1);" title="move frame right">
+<span class="bitsy_icon">next</span>
+</button>
+<button id="animationAddFrame" class="bitsy-menu-label animation-add-frame" onclick="on_add_animation_frame();">
+<span class="bitsy_icon">add</span>
+</button>
+<button id="animationDeleteFrame" class="bitsy-menu-label animation-delete-frame" onclick="on_delete_animation_frame();">
+<span class="bitsy_icon">delete</span>
                                                                         </button>
                                                                 </div>
                                                         </div>
@@ -593,27 +599,19 @@
 										</div>
 										<div id="animationFrameStrip">
 											<div id="animationFrameSliderContainer">
-												<input
-													type="range"
-													id="animationFrameSlider"
-													min="0"
-													max="0"
-													value="0"
-													step="1"
-													oninput="onAnimationFrameSliderChange(this.value);"
-												/>
-											</div>
-											<div id="animationFrameReorder">
-												<button id="animationFramePrevious" class="bitsy-menu-label animation-shift-frame" onclick="on_shift_animation_frame(-1);" title="move frame left">
-													<span class="bitsy_icon">chevron_left</span>
-												</button>
-												<button id="animationFrameNext" class="bitsy-menu-label animation-shift-frame" onclick="on_shift_animation_frame(1);" title="move frame right">
-													<span class="bitsy_icon">chevron_right</span>
-												</button>
-											</div>
-											<div id="animationFrameList" onwheel="onAnimationFrameWheel(event);">
-												<div id="animationFrames"></div>
-											</div>
+<input
+type="range"
+id="animationFrameSlider"
+min="0"
+max="0"
+value="0"
+step="1"
+oninput="onAnimationFrameSliderChange(this.value);"
+/>
+</div>
+<div id="animationFrameList" onwheel="onAnimationFrameWheel(event);">
+<div id="animationFrames"></div>
+</div>
 										</div>
 									</div>
 								</div>
