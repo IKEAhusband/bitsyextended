@@ -1774,7 +1774,7 @@ function getPaintPaletteInfo() {
 function updatePaintColorSummary(colors, selectedIndex) {
         var label = document.getElementById("paintColorSelectionText");
         var swatch = document.getElementById("paintColorSwatch");
-        var colorText = colors[selectedIndex] ? colors[selectedIndex].join(",") : "-";
+        var colorText = colors[selectedIndex] ? selectedIndex : "-";
 
         if (label) {
                 label.textContent = colorText;
@@ -1818,6 +1818,20 @@ function updatePaintColorOptions() {
         updatePaintColorSummary(colors, selectedIndex);
 }
 
+function setPaintColorDropdownOpen(isOpen) {
+        var dropdown = document.getElementById("paintColorDropdown");
+        var button = document.getElementById("paintColorButton");
+
+        if (dropdown) {
+                dropdown.classList.toggle("open", isOpen);
+        }
+
+        if (button) {
+                button.setAttribute("aria-pressed", isOpen ? "true" : "false");
+                button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        }
+}
+
 function togglePaintColorDropdown(event) {
         if (event) {
                 event.stopPropagation();
@@ -1825,18 +1839,19 @@ function togglePaintColorDropdown(event) {
 
         var dropdown = document.getElementById("paintColorDropdown");
         if (!dropdown) {
+                setPaintColorDropdownOpen(false);
                 return;
         }
 
         var isOpen = dropdown.classList.contains("open");
 
         if (isOpen) {
-                dropdown.classList.remove("open");
+                setPaintColorDropdownOpen(false);
                 return;
         }
 
         updatePaintColorOptions();
-        dropdown.classList.add("open");
+        setPaintColorDropdownOpen(true);
 
         var select = document.getElementById("paintColorSelect");
         if (select) {
@@ -1864,10 +1879,7 @@ function onPaintColorSelectChange(event) {
                 renderAnimationPreview(drawing);
         }
 
-        var dropdown = document.getElementById("paintColorDropdown");
-        if (dropdown) {
-                dropdown.classList.remove("open");
-        }
+        setPaintColorDropdownOpen(false);
 }
 
 /* PALETTE STUFF */
